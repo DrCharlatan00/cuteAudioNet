@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="cuteAudioNet.IntegrationTests/cuteAudioNet.IntegrationTests.csproj" />
+  <Project Path="cuteAudioNet.Postgresql/cuteAudioNet.Postgresql.csproj" />
+  <Project Path="cuteAudioNet.UnitTests/cuteAudioNet.UnitTests.csproj" />
+  <Project Path="cuteAudioNet/cuteAudioNet.csproj" />
+</Solution>
