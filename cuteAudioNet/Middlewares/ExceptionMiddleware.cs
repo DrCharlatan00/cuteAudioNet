@@ -6,6 +6,8 @@ namespace cuteAudioNet.Middlewares
     public class ExceptionMiddleware(RequestDelegate requestDelegate, ILogger<object> logger) 
     {
         public async Task InvokeAsync(HttpContext context) {
+            string? Function = null;
+            string? CollectonOrItemName = null;
             Type? ClassType = null;
             Type? Item = null;
             Exception? exs = null;
@@ -19,11 +21,17 @@ namespace cuteAudioNet.Middlewares
                 Item = exception.Item;
                 exs = ex;
             }
+            catch (Exception ex) when (ex is IDbGetItemOrCollectionFailException exception) {
+                Function = exception.NameFunction;
+                CollectonOrItemName = exception.NameCollection;
+            }
             catch (Exception ex) { exs = ex; }
 
             if (exs is not null) {
                 string messageToLog = exs switch
                 {
+                    DbGetCollectionIsNull => $"Funcion {Function} throw expection broken collection this name or type or name class: {CollectonOrItemName}",
+                    DbGetItemIsNull => $"Funcion {Function} throw expection bad item this name or type or name class: {CollectonOrItemName}",
                     CreateItemBaseFail<object, object> c => $"Create failed: class={ClassType.Name}, item={Item.Name}, msg={c.Message}",
                     UpdateItemBaseFail<object, object> u => $"Update failed: class={ClassType.Name}, item={Item.Name} msg={u.Message}",
                     RemoveItemBaseFail<object, object> r => $"Remove failed: class={ClassType.Name}, item={Item.Name}, msg={r.Message}",
@@ -33,6 +41,8 @@ namespace cuteAudioNet.Middlewares
 
                 string MessageClient = exs switch
                 {
+                    DbGetCollectionIsNull => $"Can't return you data, collection is bad or not available",
+                    DbGetItemIsNull => $"Can't return you data, item is bad or not available",
                     CreateItemBaseFail<object, object> => "Create is failed",
                     UpdateItemBaseFail<object, object> => $"Update is failed",
                     RemoveItemBaseFail<object, object> => $"Remove is failed",

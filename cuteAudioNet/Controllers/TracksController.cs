@@ -34,6 +34,12 @@ namespace cuteAudioNet.Controllers
             var data = await _trackService.GetWhisID(id);
             return data is null ? NotFound() : Ok(data);
         }
+
+        [HttpGet("pag-card")]
+        public async Task<IActionResult> GetCardTrackWhisPag() {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region Update

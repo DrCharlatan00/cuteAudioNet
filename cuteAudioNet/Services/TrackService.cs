@@ -7,6 +7,7 @@ using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -49,6 +50,13 @@ namespace cuteAudioNet.Services
         public async Task<ModelTrackDB?> GetWhisID(Guid id) {
             var data = await _tracksRepository.GetByIDAsyncDb(id);
             return data;
+        }
+
+
+        public async Task<IEnumerable<RDTOCardTrack>> GetByPaginationCard(int page, int pageSize) {
+            var data = await _tracksRepository.GetWhisPaginationDb(page,pageSize);
+            if (data is null) throw new DbGetCollectionIsNull("Collection is null",nameof(ModelTrackDB),nameof(GetByPaginationCard));
+            return data.Select(Map).ToImmutableList();
         }
         #endregion
 
