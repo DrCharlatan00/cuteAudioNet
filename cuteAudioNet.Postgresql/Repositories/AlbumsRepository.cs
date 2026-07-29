@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -13,18 +14,24 @@ namespace cuteAudioNet.Postgresql.Repositories
     {
         private readonly PgContext _context = context;
 
+#warning Review class
         #region Get
         public async Task<IEnumerable<ModelAlbumDB>> GetAllAlbumDb()
         {
-            return await _context.albums.AsNoTracking().ToListAsync();
+            return await _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).ToListAsync();
         }
 
         public async IAsyncEnumerable<ModelAlbumDB> GetAsyncEnumerableAllAlbumDb()
         {
-            await foreach (var item in _context.albums.AsNoTracking().AsAsyncEnumerable())
+            await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).AsAsyncEnumerable())
             {
                 yield return item;
             }
+        }
+
+        [Obsolete("as a last resort, y can't broke collectuion or lose data")]
+        public async Task<IEnumerable<ModelAlbumDB>> GetOnlyAlbums() {
+            return await _context.albums.AsNoTracking().ToListAsync();
         }
 
         public async Task<ModelAlbumDB?> GetByIdAsyncDb(Guid id)

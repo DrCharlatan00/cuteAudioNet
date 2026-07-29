@@ -1,4 +1,4 @@
-﻿using cuteAudioNet.APIModels.DTO;
+﻿using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

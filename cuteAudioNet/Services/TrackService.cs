@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.APIModels.Exceptions;
-using cuteAudioNet.APIModels.RDTOModel;
+using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services.Interfaces;

@@ -1,4 +1,5 @@
 ﻿using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
@@ -46,7 +47,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreateTrack()
     {
-        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), APIModels.RDTOModel.MusicGenre.ROCK, null, null));
+        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), MusicGenre.ROCK, null, null));
         Assert.True(result.IsSuccessStatusCode, $"Track not create, Code return server: {result.ReasonPhrase}");
         Assert.NotNull(result);
     }
@@ -81,7 +82,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             var updateData = new DTOTrack(
                 Name: "Updated",
                 testAlbum.ID.Value,
-                APIModels.RDTOModel.MusicGenre.POP,
+                MusicGenre.POP,
                 null,
                 null
                 );

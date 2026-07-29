@@ -1,4 +1,4 @@
-﻿namespace cuteAudioNet.APIModels.RDTOModel
+﻿namespace cuteAudioNet.APIModels.RDTOModel.Tracks
 {
     public record RDTOCardTrack(string Name = "",MusicGenre Genre = MusicGenre.None,string Artist = "");
 

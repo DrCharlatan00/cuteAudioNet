@@ -1,5 +1,5 @@
-﻿using cuteAudioNet.APIModels.DTO;
-using cuteAudioNet.APIModels.RDTOModel;
+﻿using cuteAudioNet.APIModels.DTO.Tracks;
+using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Models;
 
 namespace cuteAudioNet.Services.Interfaces
