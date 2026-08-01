@@ -11,6 +11,8 @@ namespace cuteAudioNet.Postgresql.Repositories
 {
     public class TracksRepository(PgContext context) : ITracksRepository
     {
+
+        // !+ Add new method from card aswers, use .Select(u => new {u.data!})
         private readonly PgContext db = context;
         #region Get
         public async Task<IEnumerable<ModelTrackDB>> GetAllTrackAsyncDb()
@@ -31,6 +33,9 @@ namespace cuteAudioNet.Postgresql.Repositories
             }
 
         }
+
+
+
 
         public async Task<IEnumerable<ModelTrackDB>> GetWhisPaginationDb(int page, int pageSize)
         {

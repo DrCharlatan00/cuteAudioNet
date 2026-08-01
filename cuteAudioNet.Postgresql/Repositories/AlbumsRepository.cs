@@ -29,14 +29,19 @@ namespace cuteAudioNet.Postgresql.Repositories
             }
         }
 
-        [Obsolete("as a last resort, y can't broke collectuion or lose data")]
+        public async IAsyncEnumerable<(string AlbumName,string ArtistNickname)> GetAsyncEnumerebleFromCardDb() {
+            await foreach (var item in _context.albums.AsNoTracking().Select(u => new { u.AlbumName, u.Artist.NickName }).AsAsyncEnumerable()) {
+                yield return (item.AlbumName,item.NickName);
+            }
+        }
+
         public async Task<IEnumerable<ModelAlbumDB>> GetOnlyAlbums() {
             return await _context.albums.AsNoTracking().ToListAsync();
         }
 
         public async Task<ModelAlbumDB?> GetByIdAsyncDb(Guid id)
         {
-            return await _context.albums.AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
+            return await _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).FirstOrDefaultAsync(x => x.ID == id);
         }
 
         public async Task<IEnumerable<ModelAlbumDB>> GetWhisPaginationAsyncDb(int page, int pageSize)

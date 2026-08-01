@@ -1,5 +1,4 @@
-﻿
-namespace cuteAudioNet.APIModels.Exceptions
+﻿namespace cuteAudioNet.Exceptions
 {
 
     public interface IOperationException {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using cuteAudioNet.APIModels.DTO.Albums;
 using cuteAudioNet.APIModels.RDTOModel.Albums;
 using cuteAudioNet.Postgresql.Models;
 
@@ -21,6 +22,16 @@ namespace cuteAudioNet.APIModels.Mapping
                             ArtistName: src.Artist.NickName,
                             default
                         )
+                );
+            CreateMap<DTOUpdateAlbum, ModelAlbumDB>().ConstructUsing(
+                    src => new ModelAlbumDB
+                    {
+                        ID = src.id,
+                        AlbumName = src.AlbumName,
+                        DateRelease = !string.IsNullOrWhiteSpace(src.DateRelease)
+                ? DateTime.Parse(src.DateRelease)
+                : null
+                    }
                 );
         }
     }
