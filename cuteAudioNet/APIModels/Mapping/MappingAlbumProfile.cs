@@ -33,6 +33,17 @@ namespace cuteAudioNet.APIModels.Mapping
                 : null
                     }
                 );
+            CreateMap<DTOCreateAlbum, ModelAlbumDB>().ConstructUsing(
+                    src => new ModelAlbumDB { 
+                        ID = Guid.NewGuid(),
+                        AlbumName = src.Name,
+                        DateRelease = 
+                        !string.IsNullOrWhiteSpace(src.DateRelease) 
+                        ? DateTime.Parse(src.DateRelease) 
+                        : null,
+                        ArtistID = src.IdArtist
+                    }
+                );
         }
     }
 }

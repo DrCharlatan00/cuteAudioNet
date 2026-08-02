@@ -100,10 +100,16 @@ namespace cuteAudioNet.Services
         }
 
 
+        /// <summary>
+        /// Method update album 
+        /// </summary>
+        /// <param name="model">Update album model, do not forgot set id</param>
+        /// <returns>Updated RDTOAlbum model </returns>
+        /// <exception cref="UpdateItemBaseFail{AlbumService, DTOUpdateAlbum}">if update operation is fall</exception>
         #endregion
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
         #region Update
-        public async Task<RDTOAlbum> UpdateAlbum(DTOUpdateAlbum model) {
+        public async Task<RDTOAlbum> UpdateItemAlbum(DTOUpdateAlbum model) {
             ArgumentNullException.ThrowIfNull(model);
             var answer = await repository.UpdateAsyncDb(Map(model));
             if (answer.updateModel is null) {
@@ -114,12 +120,56 @@ namespace cuteAudioNet.Services
         }
         #endregion
 
+        /// <summary>
+        /// Remove one item album 
+        /// </summary>
+        /// <param name="id"> The ID of the album you want to delete </param>
+        /// <returns>true is removed. This method can't return false</returns>
+        /// <exception cref="RemoveItemBaseFail{AlbumService, Guid}"> if remove operaion is fall</exception>
+        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
+        #region Remove 
+        public async Task<bool> RemoveItemAlbum(Guid id)
+        {
+            string? result = await repository.RemoveAsyncDb(id);
+            if (result is null) return true;
+            logger.LogWarning($"Operation remove is fall!! \n message: {result}");
+            throw new RemoveItemBaseFail<AlbumService, Guid>(result);
+
+
+        }
+        #endregion
+
+        #region Create
+
+        /// <summary>
+        /// Create one item album
+        /// </summary>
+        /// <param name="album">DTO create album</param>
+        /// <returns>ID created item</returns>
+        /// <exception cref="CreateItemBaseFail{AlbumService, DTOCreateAlbum}">if create operation is fall</exception>
+        /// 
+        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
+
+        public async Task<Guid> CreateItemAlbum(DTOCreateAlbum album) {
+            var result = await repository.CreateAsyncDb(Map(album));
+
+            if (result.ID is null) {
+                logger.LogWarning($"Operation create is fall!! \n message: {result.Message}");
+                throw new CreateItemBaseFail<AlbumService, DTOCreateAlbum>(result.Message);
+            }
+            return (Guid)result.ID;
+        }
+
+        #endregion
+
 
         #region Mapping 
         private RDTOTrack MapTrack(ModelTrackDB model) => mapper.Map<RDTOTrack>(model);
 
         private RDTOAlbumCard Map(ModelAlbumDB model) => mapper.Map<RDTOAlbumCard>(model);
         private ModelAlbumDB Map(DTOUpdateAlbum model) => mapper.Map<ModelAlbumDB>(model);
+        private ModelAlbumDB Map(DTOCreateAlbum model) => mapper.Map<ModelAlbumDB>(model);
+
         private RDTOAlbum MapFull(ModelAlbumDB model) => mapper.Map<RDTOAlbum>(model);
 
 

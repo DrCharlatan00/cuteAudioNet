@@ -1,6 +1,6 @@
 ﻿namespace cuteAudioNet.APIModels.DTO.Albums
 {
-    public record DTOAlbum(
+    public record DTOCreateAlbum(
         string Name, 
         string? DateRelease,
         Guid IdArtist
