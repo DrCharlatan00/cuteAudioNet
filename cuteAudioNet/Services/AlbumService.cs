@@ -12,15 +12,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace cuteAudioNet.Services
 {
     public class AlbumService(
-     /// TODO : 
-     /// Create Validation Service 
-     /// Create Test Critical code
-     ///
+        /// TODO : 
+        /// Create Validation Service 
+        /// Create Test Critical code
+        ///
 
         IAlbumsRepository repository,
         ILogger<AlbumService> logger,
         IMapper mapper
-        )
+        ) : IAlbumService
     {
         private readonly IAlbumsRepository repository = repository;
         private readonly ILogger<AlbumService> logger = logger;
@@ -35,11 +35,12 @@ namespace cuteAudioNet.Services
 
 #warning Untested
 
-        public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync() {
+        public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
+        {
             List<RDTOAlbumCard> cards = new();
             await foreach ((string AlbumName, string ArtistNickname) data in repository.GetAsyncEnumerebleFromCardDb())
             {
-                cards.Add(new RDTOAlbumCard (data.AlbumName,data.ArtistNickname));
+                cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
             }
             return cards;
         }
@@ -57,7 +58,7 @@ namespace cuteAudioNet.Services
             List<RDTOAlbum> data = new List<RDTOAlbum>();
             await foreach (var item in repository.GetAsyncEnumerableAllAlbumDb())
             {
-                if (item is null) throw new DbGetCollectionIsNull("In await foreach" , nameof(ModelAlbumDB),nameof(RDTOAlbum));
+                if (item is null) throw new DbGetCollectionIsNull("In await foreach", nameof(ModelAlbumDB), nameof(RDTOAlbum));
                 IEnumerable<ModelTrackDB> tracks = item.Tracks;
                 var MappedTrack = tracks.Select(MapTrack).ToList();
                 RDTOAlbum album = MapFull(item);
@@ -78,7 +79,8 @@ namespace cuteAudioNet.Services
         /// <param name="id"></param>
         /// <returns>RDTO model Album whis track and artist</returns>
 #warning Untested GetByIDAsync
-        public async Task<RDTOAlbum?> GetByIDAsync(Guid id) {
+        public async Task<RDTOAlbum?> GetByIDAsync(Guid id)
+        {
             ModelAlbumDB item = await repository.GetByIdAsyncDb(id);
             if (item is null) return null;
             return MapFull(item);
@@ -93,9 +95,10 @@ namespace cuteAudioNet.Services
         /// <returns>Collection RDTOAlbumCard </returns>
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
 #warning Untested GetByPaginationCard
-        public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize) {
+        public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
+        {
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
-            if (data is null) throw new DbGetCollectionIsNull(null,nameof(ModelAlbumDB),nameof(GetByPaginationCard));
+            if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
             return data.Select(Map).ToImmutableList();
         }
 
@@ -109,10 +112,12 @@ namespace cuteAudioNet.Services
         #endregion
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
         #region Update
-        public async Task<RDTOAlbum> UpdateItemAlbum(DTOUpdateAlbum model) {
+        public async Task<RDTOAlbum> UpdateItemAlbum(DTOUpdateAlbum model)
+        {
             ArgumentNullException.ThrowIfNull(model);
             var answer = await repository.UpdateAsyncDb(Map(model));
-            if (answer.updateModel is null) {
+            if (answer.updateModel is null)
+            {
                 logger.LogWarning($"Operation update is album is fall!!!, messange {answer.Message}");
                 throw new UpdateItemBaseFail<AlbumService, DTOUpdateAlbum>("Update is failed");
             }
@@ -150,10 +155,12 @@ namespace cuteAudioNet.Services
         /// 
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
 
-        public async Task<Guid> CreateItemAlbum(DTOCreateAlbum album) {
+        public async Task<Guid> CreateItemAlbum(DTOCreateAlbum album)
+        {
             var result = await repository.CreateAsyncDb(Map(album));
 
-            if (result.ID is null) {
+            if (result.ID is null)
+            {
                 logger.LogWarning($"Operation create is fall!! \n message: {result.Message}");
                 throw new CreateItemBaseFail<AlbumService, DTOCreateAlbum>(result.Message);
             }
