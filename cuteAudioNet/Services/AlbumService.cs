@@ -2,9 +2,11 @@
 using cuteAudioNet.APIModels.DTO.Albums;
 using cuteAudioNet.APIModels.RDTOModel.Albums;
 using cuteAudioNet.APIModels.RDTOModel.Tracks;
+using cuteAudioNet.APIModels.Validators;
 using cuteAudioNet.Exceptions;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
+using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -19,12 +21,16 @@ namespace cuteAudioNet.Services
 
         IAlbumsRepository repository,
         ILogger<AlbumService> logger,
-        IMapper mapper
+        IMapper mapper,
+        IValidator<DTOCreateAlbum> createValidator,
+        IValidator<DTOUpdateAlbum> updateValidator
         ) : IAlbumService
     {
         private readonly IAlbumsRepository repository = repository;
         private readonly ILogger<AlbumService> logger = logger;
         private readonly IMapper mapper = mapper;
+        private readonly IValidator<DTOCreateAlbum> createValidator = createValidator;
+        private readonly IValidator<DTOUpdateAlbum> updateValidator = updateValidator;
 
         #region Get 
         /// <summary>
@@ -102,19 +108,24 @@ namespace cuteAudioNet.Services
             return data.Select(Map).ToImmutableList();
         }
 
+        #endregion
+
+        #region Update
 
         /// <summary>
-        /// Method update album 
+        /// Update album method
         /// </summary>
-        /// <param name="model">Update album model, do not forgot set id</param>
-        /// <returns>Updated RDTOAlbum model </returns>
-        /// <exception cref="UpdateItemBaseFail{AlbumService, DTOUpdateAlbum}">if update operation is fall</exception>
-        #endregion
+        /// <param name="model">update model, not forgot set ID</param>
+        /// <returns>Updated Album</returns>
+        /// <exception cref="UpdateItemBaseFail{AlbumService, DTOUpdateAlbum}"></exception>
+        /// <exception cref="ValidationException">if validate is fall</exception>
+        /// <exception cref="ArgumentNullException">if get DTOUpdateAlbum is null </exception>
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
-        #region Update
+
         public async Task<RDTOAlbum> UpdateItemAlbum(DTOUpdateAlbum model)
         {
             ArgumentNullException.ThrowIfNull(model);
+            await updateValidator.ValidateAndThrowAsync(model);
             var answer = await repository.UpdateAsyncDb(Map(model));
             if (answer.updateModel is null)
             {
@@ -125,6 +136,8 @@ namespace cuteAudioNet.Services
         }
         #endregion
 
+
+        #region Remove 
         /// <summary>
         /// Remove one item album 
         /// </summary>
@@ -132,7 +145,6 @@ namespace cuteAudioNet.Services
         /// <returns>true is removed. This method can't return false</returns>
         /// <exception cref="RemoveItemBaseFail{AlbumService, Guid}"> if remove operaion is fall</exception>
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
-        #region Remove 
         public async Task<bool> RemoveItemAlbum(Guid id)
         {
             string? result = await repository.RemoveAsyncDb(id);
@@ -152,11 +164,15 @@ namespace cuteAudioNet.Services
         /// <param name="album">DTO create album</param>
         /// <returns>ID created item</returns>
         /// <exception cref="CreateItemBaseFail{AlbumService, DTOCreateAlbum}">if create operation is fall</exception>
-        /// 
+        /// <exception cref="ValidationException">if validate is fall</exception>
+        /// <exception cref="ArgumentNullException">if get DTOCreateAlbum is null</exception>
+
         [Experimental("NOT_REQUIRED_TESTED_METHOD")]
 
         public async Task<Guid> CreateItemAlbum(DTOCreateAlbum album)
         {
+            ArgumentNullException.ThrowIfNull(album);
+            await createValidator.ValidateAndThrowAsync(album);
             var result = await repository.CreateAsyncDb(Map(album));
 
             if (result.ID is null)

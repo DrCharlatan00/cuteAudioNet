@@ -1,7 +1,7 @@
 ﻿using cuteAudioNet.APIModels.DTO.Albums;
 using cuteAudioNet.APIModels.RDTOModel.Albums;
 
-namespace cuteAudioNet.Services
+namespace cuteAudioNet.Services.Interfaces
 {
     public interface IAlbumService
     {

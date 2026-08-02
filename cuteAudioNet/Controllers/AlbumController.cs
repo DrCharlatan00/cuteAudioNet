@@ -1,5 +1,5 @@
 ﻿using cuteAudioNet.APIModels.DTO.Albums;
-using cuteAudioNet.Services;
+using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,3 +1,4 @@
+using cuteAudioNet.APIModels.DTO.Albums;
 using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.APIModels.Mapping;
 using cuteAudioNet.APIModels.Validators;
@@ -29,6 +30,7 @@ builder.Services.AddDbContext<PgContext>(opt =>
 #endregion
 builder.Services.AddAutoMapper(cnf => {
     cnf.AddProfile<MappingTracksProfile>();
+    cnf.AddProfile<MappingAlbumProfile>();
 });
 
 builder.Services.AddScoped<IAlbumsRepository, AlbumsRepository>();
@@ -40,6 +42,9 @@ builder.Services.AddScoped<ITrackService, TrackService>();
 
 
 builder.Services.AddTransient<IValidator<DTOTrack>, ValidatorTrack>();
+builder.Services.AddTransient<IValidator<DTOCreateAlbum>, ValidatorCreateAlbum> ();
+builder.Services.AddTransient<IValidator<DTOUpdateAlbum>, ValidatorUpdateAlbum>();
+
 
 var app = builder.Build();
 
