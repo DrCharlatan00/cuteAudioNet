@@ -39,6 +39,7 @@ builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
 
 
 builder.Services.AddScoped<ITrackService, TrackService>();
+builder.Services.AddScoped<IAlbumService, AlbumService>();
 
 
 builder.Services.AddTransient<IValidator<DTOTrack>, ValidatorTrack>();
@@ -61,5 +62,14 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
+
+#if DEBUG
+foreach (var endpoint in app.Services
+    .GetRequiredService<EndpointDataSource>()
+    .Endpoints)
+{
+    Console.WriteLine(endpoint.DisplayName);
+}
+#endif
 
 app.Run();

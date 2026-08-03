@@ -64,7 +64,6 @@ namespace cuteAudioNet.Postgresql.Repositories
                     Pathonymic = newModel.Pathonymic ?? old.Pathonymic,
                     Surname = newModel.Surname ?? old.Surname,
                 };
-                _context.Update(art);
                 await _context.SaveChangesAsync();
                 return (art, "Updated");
             }
@@ -84,7 +83,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             {
                 var Alb = await _context.artists.FirstOrDefaultAsync(x => x.ID == id);
                 if (Alb is null) return "Not found";
-                _context.Remove(Alb);
+                _context.artists.Remove(Alb);
                 await _context.SaveChangesAsync();
                 return null;
             }
@@ -101,7 +100,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             newModel.ID = Guid.NewGuid();
             try
             {
-                _context.Add(newModel);
+                await _context.artists.AddAsync(newModel);
                 await _context.SaveChangesAsync();
                 return (newModel.ID, "Created");
             }

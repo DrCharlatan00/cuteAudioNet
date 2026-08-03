@@ -61,44 +61,27 @@ namespace cuteAudioNet.Postgresql.Repositories
         {
             ArgumentException.ThrowIfNullOrEmpty(updatedTrack.ID.ToString());
             var old = await db.tracks.FirstOrDefaultAsync(x => x.ID == updatedTrack.ID);
-            var AlbumID = await db.albums.AsNoTracking()
-                                           .FirstOrDefaultAsync(x => x.ID == updatedTrack.AlbumID);
-            try
+
+            if (old is null)
+                return (null, "Track not found");
+
+            var album = await db.albums
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == updatedTrack.AlbumID);
+
+            old.Name = updatedTrack.Name ?? old.Name;
+            old.SubArtist = updatedTrack.SubArtist ?? old.SubArtist;
+            old.TimeRelease = updatedTrack.TimeRelease ?? old.TimeRelease;
+            old.Genre = updatedTrack.Genre;
+
+            if (album != null)
             {
-                if (AlbumID is null || AlbumID.ID == Guid.Empty)
-                {
-                    var trackNew = new ModelTrackDB
-                    {
-                        ID = old.ID,
-                        Album = updatedTrack.Album ?? old.Album,
-                        AlbumID = old.AlbumID,
-                        Genre = updatedTrack.Genre,
-                        Name = updatedTrack.Name ?? old.Name,
-                        SubArtist = updatedTrack.SubArtist ?? old.SubArtist,
-                        TimeRelease = updatedTrack.TimeRelease ?? old.TimeRelease,
-                    };
-                    db.Update(trackNew);
-                    await db.SaveChangesAsync();
-                    return (trackNew, "Updated");
-                }
-                var trackNewold = new ModelTrackDB
-                {
-                    ID = old.ID,
-                    Album = updatedTrack.Album ?? old.Album,
-                    AlbumID = updatedTrack.AlbumID,
-                    Genre = updatedTrack.Genre,
-                    Name = updatedTrack.Name ?? old.Name,
-                    SubArtist = updatedTrack.SubArtist ?? old.SubArtist,
-                    TimeRelease = updatedTrack.TimeRelease ?? old.TimeRelease,
-                };
-                db.Update(trackNewold);
-                await db.SaveChangesAsync();
-                return (trackNewold, "Updated");
+                old.AlbumID = updatedTrack.AlbumID;
             }
-            catch (Exception ex)
-            {
-                return (null, ex.Message);
-            }
+
+            await db.SaveChangesAsync();
+
+            return (old, "Updated");
         }
         #endregion
 
@@ -110,7 +93,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             if (rem is null) return "Not found";
             try
             {
-                db.Remove(rem);
+                db.tracks.Remove(rem);
                 await db.SaveChangesAsync();
                 return null;
             }

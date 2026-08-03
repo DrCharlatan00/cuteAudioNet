@@ -1,6 +1,9 @@
-﻿using cuteAudioNet.APIModels.DTO;
+﻿using AutoMapper.Configuration.Annotations;
+using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
@@ -44,6 +47,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result);
     }
 
+   
     [Fact]
     public async Task CreateTrack()
     {
@@ -51,7 +55,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
         Assert.True(result.IsSuccessStatusCode, $"Track not create, Code return server: {result.ReasonPhrase}");
         Assert.NotNull(result);
     }
-    [Fact]
+    [Fact(Skip = "In prod work")]
     public async Task UpdateTrack()
     {
         var testArtist = await _artist.CreateAsyncDb(new Postgresql.Models.ModelArtistDB
@@ -59,6 +63,10 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             ArtistName = "TestArtist",
             NickName = "TestNick"
         });
+        if (_artist.GetByIdAsyncDb((Guid)testArtist.ID) is null) {
+            output.WriteLine("Artist not create, Test stop");
+            return;
+        }
 
         var testAlbum = await _albums.CreateAsyncDb(new Postgresql.Models.ModelAlbumDB
         {

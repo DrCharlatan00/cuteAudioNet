@@ -56,7 +56,7 @@ namespace cuteAudioNet.Postgresql.Repositories
         #region Update
         public async Task<(ModelAlbumDB? updateModel, string Message)> UpdateAsyncDb(ModelAlbumDB newModel)
         {
-            var old = await _context.albums.FirstOrDefaultAsync(x => x.ID == newModel.ID);
+            var old = await _context.albums.Include(x => x.Artist).FirstOrDefaultAsync(x => x.ID == newModel.ID);
             if (old is null) return (null, "Not Found");
             try
             {
@@ -71,7 +71,6 @@ namespace cuteAudioNet.Postgresql.Repositories
                         DateRelease = newModel.DateRelease ?? old.DateRelease
                     };
 
-                    _context.Update(nw);
                     await _context.SaveChangesAsync();
                     return (nw, "Updated");
                 }
@@ -84,6 +83,7 @@ namespace cuteAudioNet.Postgresql.Repositories
                     Artist = old.Artist,
                     DateRelease = newModel.DateRelease ?? old.DateRelease
                 };
+                await _context.SaveChangesAsync();
                 return (nwA, "Updated");
             }
             catch (Exception ex)
@@ -103,7 +103,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             {
                 var Alb = await _context.albums.FirstOrDefaultAsync(x => x.ID == id);
                 if (Alb is null) return "Not found";
-                _context.Remove(Alb);
+                _context.albums.Remove(Alb);
                 await _context.SaveChangesAsync();
                 return null;
             }
@@ -120,7 +120,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             newModel.ID = Guid.NewGuid();
             try
             {
-                _context.Add(newModel);
+                await _context.albums.AddAsync(newModel);
                 await _context.SaveChangesAsync();
                 return (newModel.ID, "Created");
             }

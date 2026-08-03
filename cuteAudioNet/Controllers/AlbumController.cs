@@ -1,4 +1,5 @@
 ﻿using cuteAudioNet.APIModels.DTO.Albums;
+using cuteAudioNet.APIModels.RDTOModel.Albums;
 using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,19 +44,27 @@ namespace cuteAudioNet.Controllers
         #region Update
         [HttpPut]
         public async Task<IActionResult> UpdateAlbumAsync([FromBody] DTOUpdateAlbum album) {
-            var item = await service.UpdateItemAlbum(album);
+            RDTOAlbum item = await service.UpdateItemAlbum(album);
             return item is not null ? Ok(item) : BadRequest(); 
         }
         #endregion
 
+        #region Create
         [HttpPost]
         public async Task<IActionResult> CreateAlbumAsync([FromBody] DTOCreateAlbum album) {
-            var item = await service.CreateItemAlbum(album);
-            return CreatedAtAction(nameof(GetByIDAsync), item);
+            Guid item = await service.CreateItemAlbum(album);
+            //return CreatedAtAction(nameof(GetByIDAsync), new {id = item }, item);  I don't no why he not work
+            return Ok(new {
+                id = item,
+                Where = "Get + guid"
+            });
         }
+        #endregion
 
+
+        #region Delete
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteAlbumAsync([FromQuery]Guid id) {
+        public async Task<IActionResult> DeleteAlbumAsync(Guid id) {
             var result = await service.RemoveItemAlbum(id);
             return result ? Ok(new {
                 Message = "Remove success",
@@ -63,7 +72,7 @@ namespace cuteAudioNet.Controllers
             }) 
             : BadRequest();
         }
-
+        #endregion
 
 
     }

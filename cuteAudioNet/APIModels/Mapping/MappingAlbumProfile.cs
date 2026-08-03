@@ -18,7 +18,7 @@ namespace cuteAudioNet.APIModels.Mapping
             CreateMap<ModelAlbumDB, RDTOAlbum>().ConstructUsing(
                     src => new RDTOAlbum(
                             Name: src.AlbumName,
-                            DateRelease: src.DateRelease.Value.ToString("d") ?? "No time release",
+                            DateRelease: src.DateRelease.HasValue ? src.DateRelease.Value.ToShortTimeString() : "No time",
                             ArtistName: src.Artist.NickName,
                             default
                         )
@@ -30,7 +30,7 @@ namespace cuteAudioNet.APIModels.Mapping
                         AlbumName = src.AlbumName,
                         DateRelease = !string.IsNullOrWhiteSpace(src.DateRelease)
                 ? DateTime.Parse(src.DateRelease)
-                : null
+                : DateTime.MinValue // I don't know why he don't like null
                     }
                 );
             CreateMap<DTOCreateAlbum, ModelAlbumDB>().ConstructUsing(
