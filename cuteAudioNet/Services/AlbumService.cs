@@ -39,7 +39,6 @@ namespace cuteAudioNet.Services
         /// <returns>Collections Albums Card</returns>
         /// <remarks>This not tested code,very possible his not work </remarks>
 
-#warning Untested
 
         public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
         {
@@ -58,7 +57,6 @@ namespace cuteAudioNet.Services
         /// <exception cref="DbGetCollectionIsNull"></exception>
         /// <remarks>This not tested code,very possible his not work </remarks>
 
-        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
         public async Task<IEnumerable<RDTOAlbum>> GetFullInfomaionAlbumAsync()
         {
             List<RDTOAlbum> data = new List<RDTOAlbum>();
@@ -84,7 +82,6 @@ namespace cuteAudioNet.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns>RDTO model Album whis track and artist</returns>
-#warning Untested GetByIDAsync
         public async Task<RDTOAlbum?> GetByIDAsync(Guid id)
         {
             ModelAlbumDB item = await repository.GetByIdAsyncDb(id);
@@ -100,7 +97,6 @@ namespace cuteAudioNet.Services
         /// <param name="pageSize">count elements for site</param>
         /// <returns>Collection RDTOAlbumCard </returns>
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
-#warning Untested GetByPaginationCard
         public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
         {
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
@@ -120,7 +116,6 @@ namespace cuteAudioNet.Services
         /// <exception cref="UpdateItemBaseFail{AlbumService, DTOUpdateAlbum}"></exception>
         /// <exception cref="ValidationException">if validate is fall</exception>
         /// <exception cref="ArgumentNullException">if get DTOUpdateAlbum is null </exception>
-        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
 
         public async Task<RDTOAlbum> UpdateItemAlbum(DTOUpdateAlbum model)
         {
@@ -144,7 +139,6 @@ namespace cuteAudioNet.Services
         /// <param name="id"> The ID of the album you want to delete </param>
         /// <returns>true is removed. This method can't return false</returns>
         /// <exception cref="RemoveItemBaseFail{AlbumService, Guid}"> if remove operaion is fall</exception>
-        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
         public async Task<bool> RemoveItemAlbum(Guid id)
         {
             string? result = await repository.RemoveAsyncDb(id);
@@ -167,7 +161,6 @@ namespace cuteAudioNet.Services
         /// <exception cref="ValidationException">if validate is fall</exception>
         /// <exception cref="ArgumentNullException">if get DTOCreateAlbum is null</exception>
 
-        [Experimental("NOT_REQUIRED_TESTED_METHOD")]
 
         public async Task<Guid> CreateItemAlbum(DTOCreateAlbum album)
         {
