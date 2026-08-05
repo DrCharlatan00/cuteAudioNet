@@ -16,11 +16,19 @@ namespace cuteAudioNet.Postgresql.Repositories
 
 #warning Review class
         #region Get
+        /// <summary> Get full information Album </summary>
+        /// <returns> IEnumerable collection Db model Album </returns>
+        /// <remarks> for performance use method GetAsyncEnumerableAllAlbumDb()</remarks>
         public async Task<IEnumerable<ModelAlbumDB>> GetAllAlbumDb()
         {
             return await _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).ToListAsync();
         }
 
+        /// <summary>
+        /// method async returns full albums collection
+        /// </summary>
+        /// <returns>IAsyncEnumerable Model db album, async return one item in collection use await forearch</returns>
+        
         public async IAsyncEnumerable<ModelAlbumDB> GetAsyncEnumerableAllAlbumDb()
         {
             await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).AsAsyncEnumerable())
@@ -28,22 +36,38 @@ namespace cuteAudioNet.Postgresql.Repositories
                 yield return item;
             }
         }
-
+/// <summary>
+/// Method async return Model album for card
+/// </summary>
+/// <returns>return async (string AlbumName, string ArtistNickname) for card model</returns>
         public async IAsyncEnumerable<(string AlbumName,string ArtistNickname)> GetAsyncEnumerebleFromCardDb() {
             await foreach (var item in _context.albums.AsNoTracking().Select(u => new { u.AlbumName, u.Artist.NickName }).AsAsyncEnumerable()) {
                 yield return (item.AlbumName,item.NickName);
             }
         }
-
+/// <summary>
+/// Method return only information for album 
+/// </summary>
+/// <returns>IEnumerable collection Model db album with only information album without track and artist info</returns>
+/// <remarks>Do not forgot. return info do not return data for track and artist information</remarks>
         public async Task<IEnumerable<ModelAlbumDB>> GetOnlyAlbums() {
             return await _context.albums.AsNoTracking().ToListAsync();
         }
-
+/// <summary>
+/// Return search and return full album by ID
+/// </summary>
+/// <param name="id">Guid id album for db</param>
+/// <returns>Full model db album or null if item not found</returns>
         public async Task<ModelAlbumDB?> GetByIdAsyncDb(Guid id)
         {
             return await _context.albums.AsNoTracking().Include(x => x.Tracks).Include(x => x.Artist).FirstOrDefaultAsync(x => x.ID == id);
         }
-
+/// <summary>
+/// get card album with pagination
+/// </summary>
+/// <param name="page">current number page</param>
+/// <param name="pageSize">count items</param>
+/// <returns>IEnumerable collection model db album </returns>
         public async Task<IEnumerable<ModelAlbumDB>> GetWhisPaginationAsyncDb(int page, int pageSize)
         {
             return await _context.albums.AsNoTracking()
@@ -54,6 +78,12 @@ namespace cuteAudioNet.Postgresql.Repositories
         #endregion
 
         #region Update
+        /// <summary>
+        /// Update in db album
+        /// </summary>
+        /// <param name="newModel">Model db album, do not forgot write to id in model </param>
+        /// <returns>(Model db album with artist, message result operations )</returns>
+        /// <remarks>Do not forgot fill out id var</remarks>
         public async Task<(ModelAlbumDB? updateModel, string Message)> UpdateAsyncDb(ModelAlbumDB newModel)
         {
             var old = await _context.albums.Include(x => x.Artist).FirstOrDefaultAsync(x => x.ID == newModel.ID);
@@ -96,7 +126,13 @@ namespace cuteAudioNet.Postgresql.Repositories
         #endregion
 
 
+        
         #region Remove
+        /// <summary>
+        /// Remove item album in db
+        /// </summary>
+        /// <param name="id">ID item which you want remove</param>
+        /// <returns>result operation string</returns>
         public async Task<string?> RemoveAsyncDb(Guid id)
         {
             try
@@ -115,6 +151,12 @@ namespace cuteAudioNet.Postgresql.Repositories
         #endregion
 
         #region Create
+        
+        /// <summary>
+        /// Create item album in db 
+        /// </summary>
+        /// <param name="newModel">Model db item, not required id, id creating in func</param>
+        /// <returns></returns>
         public async Task<(Guid? ID, string Message)> CreateAsyncDb(ModelAlbumDB newModel)
         {
             newModel.ID = Guid.NewGuid();
