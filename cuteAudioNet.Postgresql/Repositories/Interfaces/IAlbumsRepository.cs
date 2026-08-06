@@ -9,6 +9,8 @@ namespace cuteAudioNet.Postgresql.Repositories.Interfaces
         Task<IEnumerable<ModelAlbumDB>> GetAllAlbumDb();
         IAsyncEnumerable<ModelAlbumDB> GetAsyncEnumerableAllAlbumDb();
         Task<ModelAlbumDB?> GetByIdAsyncDb(Guid id);
+        Task<IEnumerable<ModelAlbumDB>> GetOnlyAlbums();
+        IAsyncEnumerable<(string AlbumName, string ArtistNickname)> GetAsyncEnumerebleFromCardDb();
         Task<IEnumerable<ModelAlbumDB>> GetWhisPaginationAsyncDb(int page, int pageSize);
         Task<string?> RemoveAsyncDb(Guid id);
         Task<(ModelAlbumDB? updateModel, string Message)> UpdateAsyncDb(ModelAlbumDB newModel);

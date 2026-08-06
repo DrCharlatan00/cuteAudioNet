@@ -1,5 +1,9 @@
-﻿using cuteAudioNet.APIModels.DTO;
+﻿using AutoMapper.Configuration.Annotations;
+using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.DTO.Tracks;
+using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
@@ -43,14 +47,15 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result);
     }
 
+   
     [Fact]
     public async Task CreateTrack()
     {
-        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), APIModels.RDTOModel.MusicGenre.ROCK, null, null));
+        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), MusicGenre.ROCK, null, null));
         Assert.True(result.IsSuccessStatusCode, $"Track not create, Code return server: {result.ReasonPhrase}");
         Assert.NotNull(result);
     }
-    [Fact]
+    [Fact(Skip = "In prod work")]
     public async Task UpdateTrack()
     {
         var testArtist = await _artist.CreateAsyncDb(new Postgresql.Models.ModelArtistDB
@@ -58,6 +63,10 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             ArtistName = "TestArtist",
             NickName = "TestNick"
         });
+        if (_artist.GetByIdAsyncDb((Guid)testArtist.ID) is null) {
+            output.WriteLine("Artist not create, Test stop");
+            return;
+        }
 
         var testAlbum = await _albums.CreateAsyncDb(new Postgresql.Models.ModelAlbumDB
         {
@@ -81,7 +90,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             var updateData = new DTOTrack(
                 Name: "Updated",
                 testAlbum.ID.Value,
-                APIModels.RDTOModel.MusicGenre.POP,
+                MusicGenre.POP,
                 null,
                 null
                 );

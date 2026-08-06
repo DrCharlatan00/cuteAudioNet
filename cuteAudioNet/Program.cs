@@ -1,4 +1,5 @@
-using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.DTO.Albums;
+using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.APIModels.Mapping;
 using cuteAudioNet.APIModels.Validators;
 using cuteAudioNet.Middlewares;
@@ -29,6 +30,7 @@ builder.Services.AddDbContext<PgContext>(opt =>
 #endregion
 builder.Services.AddAutoMapper(cnf => {
     cnf.AddProfile<MappingTracksProfile>();
+    cnf.AddProfile<MappingAlbumProfile>();
 });
 
 builder.Services.AddScoped<IAlbumsRepository, AlbumsRepository>();
@@ -37,9 +39,13 @@ builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
 
 
 builder.Services.AddScoped<ITrackService, TrackService>();
+builder.Services.AddScoped<IAlbumService, AlbumService>();
 
 
 builder.Services.AddTransient<IValidator<DTOTrack>, ValidatorTrack>();
+builder.Services.AddTransient<IValidator<DTOCreateAlbum>, ValidatorCreateAlbum> ();
+builder.Services.AddTransient<IValidator<DTOUpdateAlbum>, ValidatorUpdateAlbum>();
+
 
 var app = builder.Build();
 
@@ -56,5 +62,14 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
+
+#if DEBUG
+foreach (var endpoint in app.Services
+    .GetRequiredService<EndpointDataSource>()
+    .Endpoints)
+{
+    Console.WriteLine(endpoint.DisplayName);
+}
+#endif
 
 app.Run();

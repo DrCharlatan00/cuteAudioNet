@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using cuteAudioNet.APIModels.DTO;
-using cuteAudioNet.APIModels.RDTOModel;
+using cuteAudioNet.APIModels.DTO.Tracks;
+using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Models;
 
 namespace cuteAudioNet.APIModels.Mapping
@@ -13,14 +13,14 @@ namespace cuteAudioNet.APIModels.Mapping
             CreateMap<ModelTrackDB, RDTOCardTrack>()
                 .ConstructUsing(src => new RDTOCardTrack(
                     src.Name,
-                    Genre: (RDTOModel.MusicGenre)src.Genre,
+                    Genre: (RDTOModel.Tracks.MusicGenre)src.Genre,
                     src.Album.Artist.NickName + "feat." + src.SubArtist
                     ));
             CreateMap<ModelTrackDB, RDTOTrack>()
                 .ConstructUsing(src => new RDTOTrack(
                        Name: src.Name,
                        Artists: src.Album.Artist.NickName + "feat." + src.SubArtist,
-                       Genre: (RDTOModel.MusicGenre)src.Genre,
+                       Genre: (RDTOModel.Tracks.MusicGenre)src.Genre,
                        TimeRelease: src.TimeRelease.HasValue ? src.TimeRelease.Value.ToString("d") : "Time Release not found",
                        NameAlbum: src.Album.AlbumName ?? "Album Not Found"
                     ));

@@ -1,4 +1,4 @@
-﻿using cuteAudioNet.APIModels.DTO;
+﻿using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +45,7 @@ namespace cuteAudioNet.Controllers
         #region Update
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateTrackAsync(Guid id, DTOTrack Track) {
+        public async Task<IActionResult> UpdateTrackAsync(Guid id,[FromBody] DTOTrack Track) {
             var result = await _trackService.Update(id,Track);
             if (result is null) return BadRequest(new {
                 Message = "Update is failed ",
