@@ -9,8 +9,8 @@ namespace cuteAudioNet.Services.Interfaces
         Task<Guid> CreateAsync(DTOTrack newTrack);
         Task<IEnumerable<RDTOTrack>> GetAllTrackAsync();
         Task<IEnumerable<RDTOCardTrack>> GetTrackCardAsync();
-        Task<ModelTrackDB?> GetWhisID(Guid id);
+        Task<RDTOTrack?> GetByIDAsync(Guid id);
         Task<bool> RemoveAsync(Guid id);
-        Task<ModelTrackDB> Update(Guid id, DTOTrack dto);
+        Task<ModelTrackDB> UpdateAsync(Guid id, DTOTrack dto);
     }
 }

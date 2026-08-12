@@ -55,7 +55,7 @@ namespace cuteAudioNet.Controllers
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(RDTOTrack))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetTrackWhisID(Guid id) {
-            var data = await _trackService.GetWhisID(id);
+            var data = await _trackService.GetByIDAsync(id);
             return data is null ? NotFound() : Ok(data);
         }
 
@@ -92,7 +92,7 @@ namespace cuteAudioNet.Controllers
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ModelTrackDB))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateTrackAsync(Guid id,[FromBody] DTOTrack Track) {
-            ModelTrackDB? result = await _trackService.Update(id,Track); // review, maybe return in RDTO 
+            ModelTrackDB? result = await _trackService.UpdateAsync(id,Track); // review, maybe return in RDTO 
             if (result is null) return BadRequest(new {
                 Message = "Update is failed ",
                 Operation = "Update Track"

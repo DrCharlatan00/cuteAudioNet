@@ -29,11 +29,8 @@ namespace cuteAudioNet.Services
         private readonly IValidator<DTOTrack> _validator = validator;
         private readonly ICacheService cache = cache;
 
-
-        // Add logger to service
-        // and add doc to this 
-
         #region Get
+        
         public async Task<IEnumerable<RDTOCardTrack>> GetTrackCardAsync()
         {
             const string cacheKey = "tracks:all_card";
@@ -73,14 +70,14 @@ namespace cuteAudioNet.Services
         }
 
 
-#warning Danger data return, review this method
-        public async Task<ModelTrackDB?> GetWhisID(Guid id) {
+
+        public async Task<RDTOTrack?> GetByIDAsync(Guid id) {
             var data = await _tracksRepository.GetByIDAsyncDb(id);
-            return data;
+            return data is not  null ? MapToFull(data) : null;
         }
 
 
-        public async Task<IEnumerable<RDTOCardTrack>> GetByPaginationCard(int page, int pageSize) {
+        public async Task<IEnumerable<RDTOCardTrack>> GetByPaginationCardAsync(int page, int pageSize) {
 
             const string cacheKey = "tracks:all_card";
 
@@ -89,7 +86,10 @@ namespace cuteAudioNet.Services
             if (cacheTracks is not null) return cacheTracks.Skip((page - 1) * pageSize).Take(pageSize).ToImmutableList();
 
             var data = await _tracksRepository.GetWhisPaginationDb(page,pageSize);
-            if (data is null) throw new DbGetCollectionIsNull("Collection is null",nameof(ModelTrackDB),nameof(GetByPaginationCard));
+            if (data is null) {
+                logger.LogInformation("Get null in collection whis pagination method");
+                throw new DbGetCollectionIsNull("Collection is null", nameof(ModelTrackDB), nameof(GetByPaginationCardAsync));
+            }
             return data.Select(Map).ToImmutableList();
         }
         #endregion
@@ -101,7 +101,10 @@ namespace cuteAudioNet.Services
             ArgumentNullException.ThrowIfNull(newTrack);
             await _validator.ValidateAndThrowAsync(newTrack);
             var result = await _tracksRepository.CreateAsyncDb(Map(newTrack));
-            if (result.ID is null) throw new CreateItemBaseFail<TrackService, DTOTrack>($"Can't create result, \nMessage {result.Message}");
+            if (result.ID is null) {
+                logger.LogInformation($"Item not created, Model :{newTrack.ToString()},\nMessage: {result.Message}");
+                throw new CreateItemBaseFail<TrackService, DTOTrack>($"Can't create item, \nMessage {result.Message}"); 
+            }
             try
             {
                 await cache.RemoveAsync("tracks:all_card");
@@ -133,17 +136,21 @@ namespace cuteAudioNet.Services
                 }
                 return true;
             }
+            logger.LogInformation($"Not remove item with id: {id}, Message: {res}");
             throw new RemoveItemBaseFail<TrackService, Guid>($"Track not remove whis error {res}");
         }
         #endregion
 
         #region Update
-        public async Task<ModelTrackDB> Update(Guid id, DTOTrack dto)
+        public async Task<ModelTrackDB> UpdateAsync(Guid id, DTOTrack dto)
         {
             var data = Map(dto);
             data.ID = id;
             var res = await _tracksRepository.UpdateTracksAsyncDb(data);
-            if (res.UpdatedModel is null) throw new UpdateItemBaseFail<TrackService, DTOTrack>($"Update is have {res.Message} \n Data: {dto.ToString()}, ID: {id}");
+            if (res.UpdatedModel is null) {
+                logger.LogInformation($"Item not Update, info:{id},{dto.ToString()}\n Message: {res.Message}");
+                throw new UpdateItemBaseFail<TrackService, DTOTrack>($"Update is have {res.Message} \n Data: {dto.ToString()}, ID: {id}"); 
+            }
             try
             {
                 await cache.RemoveAsync("tracks:all_card");
