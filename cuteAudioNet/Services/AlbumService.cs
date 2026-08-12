@@ -6,6 +6,7 @@ using cuteAudioNet.APIModels.Validators;
 using cuteAudioNet.Exceptions;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
+using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
 using System.Collections.Immutable;
@@ -13,7 +14,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace cuteAudioNet.Services
 {
+#pragma warning disable CS1591 // Отсутствует комментарий XML для открытого видимого типа или члена
     public class AlbumService(
+#pragma warning restore CS1591 // Отсутствует комментарий XML для открытого видимого типа или члена
         /// TODO : 
         /// Create Validation Service 
         /// Create Test Critical code
@@ -23,7 +26,8 @@ namespace cuteAudioNet.Services
         ILogger<AlbumService> logger,
         IMapper mapper,
         IValidator<DTOCreateAlbum> createValidator,
-        IValidator<DTOUpdateAlbum> updateValidator
+        IValidator<DTOUpdateAlbum> updateValidator,
+        ICacheService cache
         ) : IAlbumService
     {
         private readonly IAlbumsRepository repository = repository;
@@ -31,6 +35,7 @@ namespace cuteAudioNet.Services
         private readonly IMapper mapper = mapper;
         private readonly IValidator<DTOCreateAlbum> createValidator = createValidator;
         private readonly IValidator<DTOUpdateAlbum> updateValidator = updateValidator;
+        private readonly ICacheService cache = cache;
 
         #region Get 
         /// <summary>
@@ -42,11 +47,21 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
         {
+            const string cacheKey = "albums:all_card";
+
+            var cacheAlbumsCard = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
+
+            if (cacheAlbumsCard is not null) return cacheAlbumsCard;
+
             List<RDTOAlbumCard> cards = new();
+            
             await foreach ((string AlbumName, string ArtistNickname) data in repository.GetAsyncEnumerebleFromCardDb())
             {
                 cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
             }
+            
+            await cache.SetAsync(cacheKey,cards,TimeSpan.FromMinutes(2));
+            
             return cards;
         }
 
@@ -59,6 +74,12 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbum>> GetFullInfomaionAlbumAsync()
         {
+            const string cacheKey = "albums:all";
+
+            var cacheAl = await cache.GetAsync<List<RDTOAlbum>>(cacheKey);
+
+            if (cacheAl is not null) return cacheAl;
+
             List<RDTOAlbum> data = new List<RDTOAlbum>();
             await foreach (var item in repository.GetAsyncEnumerableAllAlbumDb())
             {
@@ -73,7 +94,7 @@ namespace cuteAudioNet.Services
                         Tracks: MappedTrack
                     ));
             }
-            await repository.GetOnlyAlbums();
+            await cache.SetAsync(cacheKey,data,TimeSpan.FromMinutes(2));
             return data;
 
         }
@@ -99,6 +120,16 @@ namespace cuteAudioNet.Services
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
         public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
         {
+            const string cacheKey = "albums:all_card";
+            var cacheData = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
+
+            if (cacheData is not null) {
+               return cacheData
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToImmutableList();
+            }
+
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
             if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
             return data.Select(Map).ToImmutableList();
@@ -127,6 +158,15 @@ namespace cuteAudioNet.Services
                 logger.LogWarning($"Operation update is album is fall!!!, messange {answer.Message}");
                 throw new UpdateItemBaseFail<AlbumService, DTOUpdateAlbum>("Update is failed");
             }
+            try
+            {
+                await cache.RemoveAsync("albums:all_card");
+                await cache.RemoveAsync("albums:all");
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex.Message);
+            }
             return MapFull(answer.updateModel);
         }
         #endregion
@@ -142,13 +182,26 @@ namespace cuteAudioNet.Services
         public async Task<bool> RemoveItemAlbum(Guid id)
         {
             string? result = await repository.RemoveAsyncDb(id);
-            if (result is null) return true;
+            if (result is null) 
+            {
+                try {
+                    await cache.RemoveAsync("albums:all_card");
+                    await cache.RemoveAsync("albums:all");
+                }
+                catch (Exception ex) {
+                    logger.LogCritical(ex.Message);
+                }
+                return true;
+
+            }
+            
             logger.LogWarning($"Operation remove is fall!! \n message: {result}");
             throw new RemoveItemBaseFail<AlbumService, Guid>(result);
 
 
         }
         #endregion
+
 
         #region Create
 
@@ -172,6 +225,15 @@ namespace cuteAudioNet.Services
             {
                 logger.LogWarning($"Operation create is fall!! \n message: {result.Message}");
                 throw new CreateItemBaseFail<AlbumService, DTOCreateAlbum>(result.Message);
+            }
+            try
+            {
+                await cache.RemoveAsync("albums:all_card");
+                await cache.RemoveAsync("albums:all");
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex.Message);
             }
             return (Guid)result.ID;
         }
