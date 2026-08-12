@@ -9,9 +9,10 @@ using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Hosting.Builder;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using cuteAudioNet.Services.Caching;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,12 @@ builder.Services.AddDbContext<PgContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultDB") ?? throw new ArgumentNullException("Connection string is null ??"));
 });
 
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.InstanceName = "cuteAudioCache";
+    options.Configuration = builder.Configuration.GetConnectionString("RedisMain");
+});
+
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
 #endregion
 builder.Services.AddAutoMapper(cnf => {
