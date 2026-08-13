@@ -14,7 +14,6 @@ namespace cuteAudioNet.Postgresql.Repositories
     {
         private readonly PgContext _context = context;
 
-#warning Review class
         #region Get
         /// <summary> Get full information Album </summary>
         /// <returns> IEnumerable collection Db model Album </returns>
@@ -90,37 +89,28 @@ namespace cuteAudioNet.Postgresql.Repositories
             if (old is null) return (null, "Not Found");
             try
             {
-                if (newModel.ArtistID == Guid.Empty)
-                {
-                    var nw = new ModelAlbumDB
-                    {
-                        ID = old.ID,
-                        ArtistID = old.ArtistID,
-                        AlbumName = newModel.AlbumName ?? old.AlbumName,
-                        Artist = old.Artist,
-                        DateRelease = newModel.DateRelease ?? old.DateRelease
-                    };
+                old.AlbumName = !string.IsNullOrWhiteSpace(newModel.AlbumName) ? newModel.AlbumName : old.AlbumName;
+                old.DateRelease = newModel.DateRelease ?? old.DateRelease;
 
-                    await _context.SaveChangesAsync();
-                    return (nw, "Updated");
+                if (newModel.ArtistID != Guid.Empty) {
+                    var artist = await _context.artists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == newModel.ArtistID);
+
+
+                    if (artist is null) return (null, "Artist is null");
+
+                    old.ArtistID = artist.ID;
+                    old.Artist = artist;
+
+                    
                 }
-                var art = await _context.artists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == newModel.ID);
-                var nwA = new ModelAlbumDB
-                {
-                    ID = old.ID,
-                    ArtistID = art.ID,
-                    AlbumName = newModel.AlbumName ?? old.AlbumName,
-                    Artist = old.Artist,
-                    DateRelease = newModel.DateRelease ?? old.DateRelease
-                };
                 await _context.SaveChangesAsync();
-                return (nwA, "Updated");
+                return (old, "Updated");
             }
             catch (Exception ex)
             {
                 return (null, ex.Message);
             }
-
+            return (null, "?");
 
         }
         #endregion
