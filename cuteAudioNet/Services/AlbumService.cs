@@ -105,7 +105,7 @@ namespace cuteAudioNet.Services
         /// <returns>RDTO model Album whis track and artist</returns>
         public async Task<RDTOAlbum?> GetByIDAsync(Guid id)
         {
-            ModelAlbumDB item = await repository.GetByIdAsyncDb(id);
+            ModelAlbumDB? item = await repository.GetByIdAsyncDb(id);
             if (item is null) return null;
             return MapFull(item);
         }

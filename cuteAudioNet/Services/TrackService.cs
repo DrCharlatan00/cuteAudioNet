@@ -41,9 +41,9 @@ namespace cuteAudioNet.Services
             if (cacheTracks is not null) return cacheTracks;
 
             List<RDTOCardTrack> tracks = new();
-            await foreach (var item in _tracksRepository.GetAllAsyncEnumerableDb())
+            await foreach ((string Name, Postgresql.Models.MusicGenre Genre, string ArtistNickname) item in _tracksRepository.GetAllTrackCardAsyncEnumerableDb())
             {
-                tracks.Add(Map(item));
+                tracks.Add(new RDTOCardTrack(item.Name,(APIModels.RDTOModel.Tracks.MusicGenre)item.Genre,item.ArtistNickname));
             }
 
             await cache.SetAsync(cacheKey,tracks,TimeSpan.FromMinutes(2));

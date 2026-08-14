@@ -12,7 +12,7 @@ namespace cuteAudioNet.Postgresql.Repositories
     public class TracksRepository(PgContext context) : ITracksRepository
     {
 
-        // !+ Add new method from card aswers, use .Select(u => new {u.data!})
+        // !+ Add new method from card aswers
         private readonly PgContext db = context;
         #region Get
         public async Task<IEnumerable<ModelTrackDB>> GetAllTrackAsyncDb()
@@ -34,7 +34,16 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         }
 
-
+        public async IAsyncEnumerable<(string Name,MusicGenre Genre, string ArtistNickname)> GetAllTrackCardAsyncEnumerableDb() {
+            await foreach (var item in  db.tracks.AsNoTracking().Select(u => new
+            {
+                u.Name,
+                u.Genre,
+                u.Album.Artist.NickName
+            }).AsAsyncEnumerable()) {
+                yield return (item.Name,item.Genre,item.NickName);
+            } 
+        }
 
 
         public async Task<IEnumerable<ModelTrackDB>> GetWhisPaginationDb(int page, int pageSize)

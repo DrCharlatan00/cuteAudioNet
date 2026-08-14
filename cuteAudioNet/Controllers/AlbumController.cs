@@ -146,7 +146,6 @@ namespace cuteAudioNet.Controllers
         /// <returns>
         ///{
         ///Message - Result Operation run
-        /// ID - Removed Item ID
         /// }
         /// </returns>
         [HttpDelete("{id:guid}")]
@@ -156,7 +155,6 @@ namespace cuteAudioNet.Controllers
             var result = await service.RemoveItemAlbum(id);
             return result ? Ok(new {
                 Message = "Remove success",
-                ID = result
             }) 
             : BadRequest();
         }
