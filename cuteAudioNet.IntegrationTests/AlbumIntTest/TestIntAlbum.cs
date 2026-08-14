@@ -339,5 +339,24 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
             }
 
         }
+
+        [Fact]
+        public async Task TestSearchByName() {
+            var data = await client.GetAsync("api/album/by-name?name=test");
+            if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
+
+            Assert.True(data.IsSuccessStatusCode);
+            Assert.NotNull(data); 
+        }
+
+        [Fact]
+        public async Task TestSearchByPagName() {
+            var data = await client.GetAsync("api/album/by-name?name=test&page=1&pageSize=5");
+            if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
+
+            Assert.True(data.IsSuccessStatusCode);
+            Assert.NotNull(data);
+            
+        }
     }
 }
