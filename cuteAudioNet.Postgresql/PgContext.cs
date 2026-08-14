@@ -18,7 +18,9 @@ namespace cuteAudioNet.Postgresql
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ModelTrackDB>().HasOne(x => x.Album).WithMany(x => x.Tracks).HasForeignKey(x => x.AlbumID);
+            modelBuilder.Entity<ModelTrackDB>().HasIndex(x => x.Name).HasMethod("gin").HasOperators("gin_trgm_ops");
             modelBuilder.Entity<ModelAlbumDB>().HasOne(x => x.Artist).WithMany(x => x.Albums).HasForeignKey(x => x.ArtistID);
+            modelBuilder.Entity<ModelAlbumDB>().HasIndex(x => x.AlbumName).HasMethod("gin").HasOperators("gin_trgm_ops");
             base.OnModelCreating(modelBuilder);
         }
     }

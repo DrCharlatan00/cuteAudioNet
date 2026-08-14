@@ -120,6 +120,16 @@ namespace cuteAudioNet.Services
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
         public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
         {
+            if (page <= 0 || page > 10000)
+            {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 10000)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
             const string cacheKey = "albums:all_card";
             var cacheData = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
 
@@ -133,6 +143,50 @@ namespace cuteAudioNet.Services
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
             if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
             return data.Select(Map).ToImmutableList();
+        }
+
+        /// <summary>
+        /// Search by name
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <returns>collection items </returns>
+        public async Task<IEnumerable<RDTOAlbum>> SearchByNameAsync(string name,CancellationToken cancellationToken)
+        {
+            List<RDTOAlbum> albums = new List<RDTOAlbum>();
+            await foreach (var item in repository.SearchByNameAsyncEnumerable(name).WithCancellation(cancellationToken))
+            {
+                albums.Add(MapFull(item));
+            }
+            return albums;
+
+        }
+
+        /// <summary>
+        /// Search by name with pagination 
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <param name="page">current page</param>
+        /// <param name="pageSize">count items</param>
+        /// <returns>collection paged items</returns>
+        /// <exception cref="ArgumentException">if page or pageSize is have a bad data</exception>
+        public async Task<IEnumerable<RDTOAlbum>> SearchByNameWithPaginationAsync(string name, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            if (page <= 0 || page > 10000) {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 100)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
+            List<RDTOAlbum> albums = new List<RDTOAlbum>();
+            await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize).WithCancellation(cancellationToken))
+            {
+                albums.Add(MapFull(item));
+            }
+            return albums;
+
         }
 
         #endregion

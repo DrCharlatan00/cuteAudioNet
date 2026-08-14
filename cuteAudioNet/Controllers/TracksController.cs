@@ -4,6 +4,7 @@ using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
@@ -68,6 +69,16 @@ namespace cuteAudioNet.Controllers
         [Experimental("NOT_RELEASED_CODE")]
         [HttpGet("pag-card")]
         public async Task<IActionResult> GetCardTrackWhisPag() {
+            //if (page <= 0 || page > 10000)
+            //{
+            //    throw new ArgumentException("Page is bad");
+            //}
+
+            //if (pageSize <= 0 || pageSize > 10000)
+            //{
+            //    throw new ArgumentException("Page size is bad");
+            //}
+
             throw new NotImplementedException();
         }
 

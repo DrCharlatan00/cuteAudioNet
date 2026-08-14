@@ -86,6 +86,32 @@ namespace cuteAudioNet.Controllers
             return item is not null ? Ok(item) : NotFound();
         }
 
+        /// <summary>
+        /// Get albums by name with pagination
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <param name="page">current page</param>
+        /// <param name="pageSize">count items</param>
+        /// <returns>Collection paged albums by name</returns>
+        [HttpGet("by-name-pag")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RDTOAlbum>))]
+        public async Task<IActionResult> GetByNamePag([FromQuery] string name, [FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken) {
+            var items = await service.SearchByNameWithPaginationAsync(name,page,pageSize,cancellationToken);
+            return  Ok(items);
+        }
+
+        /// <summary>
+        /// Get albums by name
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <returns>Collection albums by name</returns>
+        [HttpGet("by-name")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RDTOAlbum>))]
+        public async Task<IActionResult> GetByName([FromQuery] string name, CancellationToken cancellationToken) {
+            var items = await service.SearchByNameAsync(name, cancellationToken);
+            return Ok(items);
+        }
+
         #endregion
 
         #region Update

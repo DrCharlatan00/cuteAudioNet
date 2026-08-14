@@ -51,6 +51,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             return await db.tracks
                 .Include(x => x.Album)
                 .Include(x => x.Album.Artist)
+                .OrderBy(x => x.ID)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
