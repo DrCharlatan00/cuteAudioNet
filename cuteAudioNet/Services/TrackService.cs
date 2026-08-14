@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using cuteAudioNet.APIModels.DTO.Tracks;
-using cuteAudioNet.Exceptions;
+using cuteAudioNet.APIModels.RDTOModel.Albums;
 using cuteAudioNet.APIModels.RDTOModel.Tracks;
+using cuteAudioNet.Exceptions;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
+using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -12,7 +14,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
-using cuteAudioNet.Services.Caching;
 
 namespace cuteAudioNet.Services
 {
@@ -79,6 +80,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOCardTrack>> GetByPaginationCardAsync(int page, int pageSize) {
 
+
             if (page <= 0 || page > 10000)
             {
                 throw new ArgumentException("Page is bad");
@@ -105,7 +107,15 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOTrack>> SearchByNameAsync(string name, CancellationToken cancellationToken) {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
-            
+
+            const string cacheKey = "tracks:all";
+
+            var cached = await cache.GetAsync<IEnumerable<RDTOTrack>>(cacheKey);
+
+
+            if (cached is not null)
+                return cached.Where(x => x.Name == name).ToList();
+
             List<RDTOTrack> tracks = new();
             await foreach (var item in tracksRepository.SearchByNameAsyncEnumerable(name, cancellationToken)) {
                 tracks.Add(MapToFull(item));
@@ -127,6 +137,18 @@ namespace cuteAudioNet.Services
             {
                 throw new ArgumentException("Page size is bad");
             }
+
+            const string cacheKey = "tracks:all_card";
+            var cacheData = await cache.GetAsync<List<RDTOCardTrack>>(cacheKey);
+
+            if (cacheData is not null)
+            {
+                return cacheData
+                     .Skip((page - 1) * pageSize)
+                     .Take(pageSize)
+                     .ToImmutableList();
+            }
+
 
             List<RDTOCardTrack> tracks = new();
             await foreach (var item in tracksRepository.SearchByNameWithPaginationAsyncEnumerable(name,page, pageSize, cancellationToken))

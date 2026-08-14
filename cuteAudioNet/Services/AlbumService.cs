@@ -152,6 +152,13 @@ namespace cuteAudioNet.Services
         /// <returns>collection items </returns>
         public async Task<IEnumerable<RDTOAlbum>> SearchByNameAsync(string name,CancellationToken cancellationToken)
         {
+            const string cacheKey = "albums:all";
+
+            var cached = await cache.GetAsync<IEnumerable<RDTOAlbum>>(cacheKey);
+
+            if (cached is not null) 
+                return cached.Where(x => x.Name == name).ToList();
+
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
 
             List<RDTOAlbum> albums = new List<RDTOAlbum>();
@@ -184,6 +191,12 @@ namespace cuteAudioNet.Services
             {
                 throw new ArgumentException("Page size is bad");
             }
+
+            const string cacheKey = "albums:all_card";
+
+            var cached = await cache.GetAsync<IEnumerable<RDTOAlbumCard>>(cacheKey);
+
+            if (cached is not null) return cached.Where(x => x.Name == name).OrderBy(x => x.Name).Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             List<RDTOAlbumCard> albums = new List<RDTOAlbumCard>();
             await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize,cancellationToken).WithCancellation(cancellationToken))
