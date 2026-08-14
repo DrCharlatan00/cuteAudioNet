@@ -116,7 +116,7 @@ namespace cuteAudioNet.Services
         /// </summary>
         /// <param name="page">page in site</param>
         /// <param name="pageSize">count elements for site</param>
-        /// <returns>Collection RDTOAlbumCard </returns>
+        /// <returns>Collection card RDTOAlbumCard </returns>
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
         public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
         {
@@ -152,8 +152,10 @@ namespace cuteAudioNet.Services
         /// <returns>collection items </returns>
         public async Task<IEnumerable<RDTOAlbum>> SearchByNameAsync(string name,CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+
             List<RDTOAlbum> albums = new List<RDTOAlbum>();
-            await foreach (var item in repository.SearchByNameAsyncEnumerable(name).WithCancellation(cancellationToken))
+            await foreach (var item in repository.SearchByNameAsyncEnumerable(name,cancellationToken).WithCancellation(cancellationToken))
             {
                 albums.Add(MapFull(item));
             }
@@ -167,10 +169,13 @@ namespace cuteAudioNet.Services
         /// <param name="name">the name by which you want to search</param>
         /// <param name="page">current page</param>
         /// <param name="pageSize">count items</param>
-        /// <returns>collection paged items</returns>
+        /// <returns>collection paged card items</returns>
         /// <exception cref="ArgumentException">if page or pageSize is have a bad data</exception>
-        public async Task<IEnumerable<RDTOAlbum>> SearchByNameWithPaginationAsync(string name, int page, int pageSize, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RDTOAlbumCard>> SearchByNameWithPaginationAsync(string name, int page, int pageSize, CancellationToken cancellationToken)
         {
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+
             if (page <= 0 || page > 10000) {
                 throw new ArgumentException("Page is bad");
             }
@@ -180,10 +185,10 @@ namespace cuteAudioNet.Services
                 throw new ArgumentException("Page size is bad");
             }
 
-            List<RDTOAlbum> albums = new List<RDTOAlbum>();
-            await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize).WithCancellation(cancellationToken))
+            List<RDTOAlbumCard> albums = new List<RDTOAlbumCard>();
+            await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize,cancellationToken).WithCancellation(cancellationToken))
             {
-                albums.Add(MapFull(item));
+                albums.Add(Map(item));
             }
             return albums;
 

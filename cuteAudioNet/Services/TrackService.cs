@@ -79,6 +79,16 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOCardTrack>> GetByPaginationCardAsync(int page, int pageSize) {
 
+            if (page <= 0 || page > 10000)
+            {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 10000)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
             const string cacheKey = "tracks:all_card";
 
             var cacheTracks = await cache.GetAsync<List<RDTOCardTrack>>(cacheKey);
@@ -91,6 +101,39 @@ namespace cuteAudioNet.Services
                 throw new DbGetCollectionIsNull("Collection is null", nameof(ModelTrackDB), nameof(GetByPaginationCardAsync));
             }
             return data.Select(Map).ToImmutableList();
+        }
+
+        public async Task<IEnumerable<RDTOTrack>> SearchByNameAsync(string name, CancellationToken cancellationToken) {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+            
+            List<RDTOTrack> tracks = new();
+            await foreach (var item in tracksRepository.SearchByNameAsyncEnumerable(name, cancellationToken)) {
+                tracks.Add(MapToFull(item));
+            }
+            return tracks;
+        }
+
+        public async Task<IEnumerable<RDTOCardTrack>> SearchByNamePaginationAsync(string name,int page, int pageSize ,CancellationToken cancellationToken) {
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+
+
+            if (page <= 0 || page > 10000)
+            {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 10000)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
+            List<RDTOCardTrack> tracks = new();
+            await foreach (var item in tracksRepository.SearchByNameWithPaginationAsyncEnumerable(name,page, pageSize, cancellationToken))
+            {
+                tracks.Add(Map(item));
+            }
+            return tracks;
         }
         #endregion
 

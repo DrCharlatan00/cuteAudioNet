@@ -92,12 +92,12 @@ namespace cuteAudioNet.Controllers
         /// <param name="name">the name by which you want to search</param>
         /// <param name="page">current page</param>
         /// <param name="pageSize">count items</param>
-        /// <returns>Collection paged albums by name</returns>
+        /// <returns>Collection paged card albums by name</returns>
         [HttpGet("by-name-pag")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RDTOAlbum>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RDTOAlbumCard>))]
         public async Task<IActionResult> GetByNamePag([FromQuery] string name, [FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken) {
             var items = await service.SearchByNameWithPaginationAsync(name,page,pageSize,cancellationToken);
-            return  Ok(items);
+            return Ok(items);
         }
 
         /// <summary>

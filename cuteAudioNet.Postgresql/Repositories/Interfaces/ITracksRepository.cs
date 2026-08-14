@@ -1,4 +1,5 @@
 ﻿using cuteAudioNet.Postgresql.Models;
+using System.Runtime.CompilerServices;
 
 namespace cuteAudioNet.Postgresql.Repositories.Interfaces
 {
@@ -11,6 +12,8 @@ namespace cuteAudioNet.Postgresql.Repositories.Interfaces
         IAsyncEnumerable<(string Name, MusicGenre Genre, string ArtistNickname)> GetAllTrackCardAsyncEnumerableDb();
         Task<IEnumerable<ModelTrackDB>> GetOnlyTrackAsyncDb();
         Task<IEnumerable<ModelTrackDB>> GetWhisPaginationDb(int page, int pageSize);
+        IAsyncEnumerable<ModelTrackDB> SearchByNameAsyncEnumerable(string name, CancellationToken cancellationToken);
+        IAsyncEnumerable<ModelTrackDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page, int pageSize,  CancellationToken cancellationToken);
         Task<string?> RemoveAsyncDb(Guid id);
         Task<(ModelTrackDB? UpdatedModel, string Message)> UpdateTracksAsyncDb(ModelTrackDB updatedTrack);
     }
