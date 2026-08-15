@@ -9,7 +9,6 @@ using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using cuteAudioNet.Services.Caching;

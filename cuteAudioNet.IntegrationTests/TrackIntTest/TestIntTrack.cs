@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cuteAudioNet.IntegrationTests;
 
@@ -33,6 +34,9 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     public async Task TestGetTrackCard()
     {
         var result = await client.GetAsync("api/tracks/");
+
+        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
+
         Assert.True(result.IsSuccessStatusCode);
 
         Assert.NotNull(result);
@@ -42,6 +46,8 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     public async Task TestGetTrackFull()
     {
         var result = await client.GetAsync("api/tracks/full");
+        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
+
 
         Assert.True(result.IsSuccessStatusCode);
         Assert.NotNull(result);
@@ -95,7 +101,7 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
                 null
                 );
 
-            var response = await client.PutAsJsonAsync($"/api/track/{testTrack.ID}", updateData);
+            var response = await client.PutAsJsonAsync($"/api/tracks/{testTrack.ID}", updateData);
 
             // Assert
             Assert.True(response.IsSuccessStatusCode,
@@ -120,5 +126,27 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
                 output.WriteLine("Warn: Not remove test data");
             }
         }
+    }
+
+    [Fact]
+    public async Task TestGetByName() {
+        var data = await client.GetAsync("api/tracks/by-name?name=Track 1");
+
+        if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
+
+        Assert.True(data.IsSuccessStatusCode);
+        Assert.NotNull(data);
+
+    }
+
+    [Fact]
+    public async Task TestSearchByPagName()
+    {
+        var data = await client.GetAsync("api/tracks/by-name-pag?name=test&page=1&pageSize=5");
+        if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
+
+        Assert.True(data.IsSuccessStatusCode);
+        Assert.NotNull(data);
+
     }
 }

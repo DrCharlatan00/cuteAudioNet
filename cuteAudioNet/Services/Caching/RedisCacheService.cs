@@ -9,11 +9,19 @@ namespace cuteAudioNet.Services.Caching
 
         public async Task<T?> GetAsync<T>(string key)
         {
-            var json = await cache.GetAsync(key);
+            try
+            {
+                var json = await cache.GetAsync(key);
 
-            if (json is null) return default;
+                if (json is null) return default;
 
-            return JsonSerializer.Deserialize<T>(json);
+                return JsonSerializer.Deserialize<T>(json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return default;
         }
 
         public async Task SetAsync<T>(string key, T value, TimeSpan Time)
@@ -24,14 +32,27 @@ namespace cuteAudioNet.Services.Caching
             {
                 AbsoluteExpirationRelativeToNow = Time,
             };
-
-            await _cache.SetStringAsync(key, json, opt);
+            try
+            {
+                await _cache.SetStringAsync(key, json, opt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
         }
 
         public async Task RemoveAsync(string key)
         {
-            await _cache.RemoveAsync(key);
+            try
+            {
+                await _cache.RemoveAsync(key);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 }

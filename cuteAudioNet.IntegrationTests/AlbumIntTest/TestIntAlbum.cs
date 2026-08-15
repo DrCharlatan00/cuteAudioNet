@@ -351,7 +351,7 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
 
         [Fact]
         public async Task TestSearchByPagName() {
-            var data = await client.GetAsync("api/album/by-name?name=test&page=1&pageSize=5");
+            var data = await client.GetAsync("api/album/by-name-pag?name=test&page=1&pageSize=5");
             if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
 
             Assert.True(data.IsSuccessStatusCode);

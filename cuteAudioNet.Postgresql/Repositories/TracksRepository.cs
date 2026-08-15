@@ -64,7 +64,7 @@ namespace cuteAudioNet.Postgresql.Repositories
         }
 
         public async IAsyncEnumerable<ModelTrackDB> SearchByNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken) {
-            await foreach (var item in _context.tracks.AsNoTracking().Where(x => x.Name.Contains(name)).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            await foreach (var item in _context.tracks.AsNoTracking().Include(x => x.Album).Where(x => x.Name.Contains(name)).AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 yield return item;
             }

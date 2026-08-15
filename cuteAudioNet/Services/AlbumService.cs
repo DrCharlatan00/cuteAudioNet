@@ -74,12 +74,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbum>> GetFullInfomaionAlbumAsync()
         {
-            const string cacheKey = "albums:all";
-
-            var cacheAl = await cache.GetAsync<List<RDTOAlbum>>(cacheKey);
-
-            if (cacheAl is not null) return cacheAl;
-
+           
             List<RDTOAlbum> data = new List<RDTOAlbum>();
             await foreach (var item in repository.GetAsyncEnumerableAllAlbumDb())
             {
@@ -94,7 +89,6 @@ namespace cuteAudioNet.Services
                         Tracks: MappedTrack
                     ));
             }
-            await cache.SetAsync(cacheKey,data,TimeSpan.FromMinutes(2));
             return data;
 
         }
@@ -152,12 +146,6 @@ namespace cuteAudioNet.Services
         /// <returns>collection items </returns>
         public async Task<IEnumerable<RDTOAlbum>> SearchByNameAsync(string name,CancellationToken cancellationToken)
         {
-            const string cacheKey = "albums:all";
-
-            var cached = await cache.GetAsync<IEnumerable<RDTOAlbum>>(cacheKey);
-
-            if (cached is not null) 
-                return cached.Where(x => x.Name == name).ToList();
 
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
 
@@ -191,12 +179,6 @@ namespace cuteAudioNet.Services
             {
                 throw new ArgumentException("Page size is bad");
             }
-
-            const string cacheKey = "albums:all_card";
-
-            var cached = await cache.GetAsync<IEnumerable<RDTOAlbumCard>>(cacheKey);
-
-            if (cached is not null) return cached.Where(x => x.Name == name).OrderBy(x => x.Name).Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             List<RDTOAlbumCard> albums = new List<RDTOAlbumCard>();
             await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize,cancellationToken).WithCancellation(cancellationToken))
@@ -233,7 +215,6 @@ namespace cuteAudioNet.Services
             try
             {
                 await cache.RemoveAsync("albums:all_card");
-                await cache.RemoveAsync("albums:all");
             }
             catch (Exception ex)
             {
@@ -258,7 +239,6 @@ namespace cuteAudioNet.Services
             {
                 try {
                     await cache.RemoveAsync("albums:all_card");
-                    await cache.RemoveAsync("albums:all");
                 }
                 catch (Exception ex) {
                     logger.LogCritical(ex.Message);
@@ -301,7 +281,6 @@ namespace cuteAudioNet.Services
             try
             {
                 await cache.RemoveAsync("albums:all_card");
-                await cache.RemoveAsync("albums:all");
             }
             catch (Exception ex)
             {
