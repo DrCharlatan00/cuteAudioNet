@@ -9,9 +9,9 @@ using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Serilog;
 using cuteAudioNet.Services.Caching;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +21,30 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+
+#region Logger
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+
+builder.Host.ConfigureLogging(log => {
+    log.AddSerilog();
+#if !DEBUG
+    log.SetMinimumLevel(LogLevel.Warning);
+#endif
+#if DEBUG
+    log.SetMinimumLevel(LogLevel.Information);
+#endif
+    
+
+}).UseSerilog();
+
+
+#endregion
+
+
 
 #region DB
 builder.Services.AddDbContext<PgContext>(opt =>
@@ -53,6 +77,7 @@ builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddTransient<IValidator<DTOTrack>, ValidatorTrack>();
 builder.Services.AddTransient<IValidator<DTOCreateAlbum>, ValidatorCreateAlbum> ();
 builder.Services.AddTransient<IValidator<DTOUpdateAlbum>, ValidatorUpdateAlbum>();
+
 
 
 var app = builder.Build();

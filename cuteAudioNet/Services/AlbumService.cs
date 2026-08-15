@@ -155,7 +155,7 @@ namespace cuteAudioNet.Services
             var answer = await repository.UpdateAsyncDb(Map(model));
             if (answer.updateModel is null)
             {
-                logger.LogWarning($"Operation update is album is fall!!!, messange {answer.Message}");
+                logger.LogWarning("Operation update is album is fall!!!, messange {messege}",answer.Message);
                 throw new UpdateItemBaseFail<AlbumService, DTOUpdateAlbum>("Update is failed");
             }
             try
@@ -195,7 +195,7 @@ namespace cuteAudioNet.Services
 
             }
             
-            logger.LogWarning($"Operation remove is fall!! \n message: {result}");
+            logger.LogWarning("Operation remove is fall!! \n message: {result}",result);
             throw new RemoveItemBaseFail<AlbumService, Guid>(result);
 
 
@@ -223,7 +223,7 @@ namespace cuteAudioNet.Services
 
             if (result.ID is null)
             {
-                logger.LogWarning($"Operation create is fall!! \n message: {result.Message}");
+                logger.LogWarning("Operation create is fall!! \n message: {message}",result.Message);
                 throw new CreateItemBaseFail<AlbumService, DTOCreateAlbum>(result.Message);
             }
             try
