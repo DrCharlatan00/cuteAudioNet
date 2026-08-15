@@ -87,7 +87,7 @@ namespace cuteAudioNet.Services
 
             var data = await _tracksRepository.GetWhisPaginationDb(page,pageSize);
             if (data is null) {
-                logger.LogInformation("Get null in collection whis pagination method");
+                logger.LogInformation("Get null in collection whis pagination method\n method {method} \ninfo {page} {pagesize}", nameof(GetByPaginationCardAsync),page,pageSize);
                 throw new DbGetCollectionIsNull("Collection is null", nameof(ModelTrackDB), nameof(GetByPaginationCardAsync));
             }
             return data.Select(Map).ToImmutableList();
@@ -102,7 +102,7 @@ namespace cuteAudioNet.Services
             await _validator.ValidateAndThrowAsync(newTrack);
             var result = await _tracksRepository.CreateAsyncDb(Map(newTrack));
             if (result.ID is null) {
-                logger.LogInformation($"Item not created, Model :{newTrack.ToString()},\nMessage: {result.Message}");
+                logger.LogInformation("Item not created, Model : {@model},\nMessage: {message}",newTrack,result.Message);
                 throw new CreateItemBaseFail<TrackService, DTOTrack>($"Can't create item, \nMessage {result.Message}"); 
             }
             try
@@ -112,7 +112,8 @@ namespace cuteAudioNet.Services
 
             }
             catch (Exception ex) {
-                logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
+                //logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
+                logger.LogCritical("data is redis not removed with create in class {track} \nException {exc}", nameof(TrackService), ex.Message);
             }
             return (Guid)result.ID;
         }
@@ -136,7 +137,7 @@ namespace cuteAudioNet.Services
                 }
                 return true;
             }
-            logger.LogInformation($"Not remove item with id: {id}, Message: {res}");
+            logger.LogInformation("Not remove item with id: {id}, Message: {res}",id,res);
             throw new RemoveItemBaseFail<TrackService, Guid>($"Track not remove whis error {res}");
         }
         #endregion
@@ -148,7 +149,7 @@ namespace cuteAudioNet.Services
             data.ID = id;
             var res = await _tracksRepository.UpdateTracksAsyncDb(data);
             if (res.UpdatedModel is null) {
-                logger.LogInformation($"Item not Update, info:{id},{dto.ToString()}\n Message: {res.Message}");
+                logger.LogInformation("Item not Update, info:{id},{dto}\n Message: {res}",id,dto.ToString(),res.Message);
                 throw new UpdateItemBaseFail<TrackService, DTOTrack>($"Update is have {res.Message} \n Data: {dto.ToString()}, ID: {id}"); 
             }
             try
@@ -159,7 +160,7 @@ namespace cuteAudioNet.Services
             }
             catch (Exception ex)
             {
-                logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
+                logger.LogCritical("data is redis not removed with update in class {track} \nException {exc}", nameof(TrackService), ex.Message);
             }
             return res.UpdatedModel;
         }
