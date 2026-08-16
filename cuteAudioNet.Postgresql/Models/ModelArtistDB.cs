@@ -14,6 +14,6 @@ namespace cuteAudioNet.Postgresql.Models
         public string? Pathonymic { get; set; }
         public ICollection<ModelAlbumDB> Albums { get; set; }
 
-        
+
     }
 }
