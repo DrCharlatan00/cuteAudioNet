@@ -136,23 +136,23 @@ namespace cuteAudioNet.Services
             {
                 throw new ArgumentException("Page size is bad");
             }
-            try
-            {
-                const string cacheVersion = "tracks:version";
-                long version = await cache.GetVersionAsync(cacheVersion);
-                string cacheKey = $"tracks:card:v{version}:page{page}:size:{pageSize}";
-                var cacheData = await cache.GetAsync<List<RDTOCardTrack>>(cacheKey);
+            //try
+            //{
+            //    const string cacheVersion = "tracks:version";
+            //    long version = await cache.GetVersionAsync(cacheVersion);
+            //    string cacheKey = $"tracks:card:v{version}:page{page}:size:{pageSize}";
+            //    var cacheData = await cache.GetAsync<List<RDTOCardTrack>>(cacheKey);
 
-                if (cacheData is not null)
-                {
-                    return cacheData
-                         .Where(x => x.Name.Contains(name))
-                         .ToImmutableList();
-                }
-            }
-            catch (Exception ex){
-                logger.LogError(ex.Message);
-            }
+            //    if (cacheData is not null)
+            //    {
+            //        return cacheData
+            //             .Where(x => x.Name.Contains(name))
+            //             .ToImmutableList();
+            //    }
+            ////}
+            //catch (Exception ex){
+            //    logger.LogError(ex.Message);
+            //}
 
             List<RDTOCardTrack> tracks = new();
             await foreach (var item in tracksRepository.SearchByNameWithPaginationAsyncEnumerable(name,page, pageSize, cancellationToken))

@@ -47,11 +47,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
         {
-            const string cacheKey = "albums:all_card";
 
-            var cacheAlbumsCard = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
-
-            if (cacheAlbumsCard is not null) return cacheAlbumsCard;
 
             List<RDTOAlbumCard> cards = new();
             
@@ -60,7 +56,6 @@ namespace cuteAudioNet.Services
                 cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
             }
             
-            await cache.SetAsync(cacheKey,cards,TimeSpan.FromMinutes(2));
             
             return cards;
         }
@@ -124,7 +119,11 @@ namespace cuteAudioNet.Services
                 throw new ArgumentException("Page size is bad");
             }
 
-            const string cacheKey = "albums:all_card";
+            const string cacheVersion = "albums:version";
+
+            var version = cache.GetVersionAsync(cacheVersion);
+
+            string cacheKey = $"albums:card:v{1}:page{page}:size:{pageSize}";
             var cacheData = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
 
             if (cacheData is not null) {
