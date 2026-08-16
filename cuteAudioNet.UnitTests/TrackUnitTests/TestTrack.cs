@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using cuteAudioNet.APIModels.DTO.Tracks;
-using cuteAudioNet.APIModels.RDTOModel.Tracks;
+using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.RDTOModel;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
@@ -53,7 +53,7 @@ public class TestTrack
 
         var mapper = new Mock<IMapper>();
 
-        var map_return = new RDTOCardTrack("Pupa", APIModels.RDTOModel.Tracks.MusicGenre.JAZZ, "Test");
+        var map_return = new RDTOCardTrack("Pupa", APIModels.RDTOModel.MusicGenre.JAZZ, "Test");
 
         mapper.Setup(x => x.Map<ModelTrackDB, RDTOCardTrack>(It.IsAny<ModelTrackDB>()))
             .Returns(map_return);

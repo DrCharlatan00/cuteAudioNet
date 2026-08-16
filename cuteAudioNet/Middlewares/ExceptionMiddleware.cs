@@ -1,4 +1,4 @@
-﻿using cuteAudioNet.Exceptions;
+﻿using cuteAudioNet.APIModels.Exceptions;
 using FluentValidation;
 
 namespace cuteAudioNet.Middlewares

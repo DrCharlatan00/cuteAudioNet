@@ -1,4 +1,4 @@
-﻿using cuteAudioNet.APIModels.DTO.Tracks;
+﻿using cuteAudioNet.APIModels.DTO;
 using FluentValidation;
 
 namespace cuteAudioNet.APIModels.Validators

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using cuteAudioNet.APIModels.DTO.Tracks;
-using cuteAudioNet.APIModels.RDTOModel.Tracks;
+using cuteAudioNet.APIModels.DTO;
+using cuteAudioNet.APIModels.RDTOModel;
 using cuteAudioNet.Postgresql.Models;
 
 namespace cuteAudioNet.APIModels.Mapping
@@ -13,20 +13,16 @@ namespace cuteAudioNet.APIModels.Mapping
             CreateMap<ModelTrackDB, RDTOCardTrack>()
                 .ConstructUsing(src => new RDTOCardTrack(
                     src.Name,
-                    Genre: (RDTOModel.Tracks.MusicGenre)src.Genre,
+                    Genre: (RDTOModel.MusicGenre)src.Genre,
                     src.Album.Artist.NickName + "feat." + src.SubArtist
                     ));
             CreateMap<ModelTrackDB, RDTOTrack>()
                 .ConstructUsing(src => new RDTOTrack(
                        Name: src.Name,
-
-                      Artists: src.Album != null && src.Album.Artist != null
-    ? src.Album.Artist.NickName + " feat. " + src.SubArtist
-    : "N/A",
-
-                       Genre: (RDTOModel.Tracks.MusicGenre)src.Genre,
+                       Artists: src.Album.Artist.NickName + "feat." + src.SubArtist,
+                       Genre: (RDTOModel.MusicGenre)src.Genre,
                        TimeRelease: src.TimeRelease.HasValue ? src.TimeRelease.Value.ToString("d") : "Time Release not found",
-                       NameAlbum: string.IsNullOrWhiteSpace(src.Album.AlbumName) ? "N/A"  : src.Album.AlbumName
+                       NameAlbum: src.Album.AlbumName ?? "Album Not Found"
                     ));
             #endregion
 
@@ -35,9 +31,9 @@ namespace cuteAudioNet.APIModels.Mapping
                 {
                     ID = Guid.NewGuid(),
                     AlbumID = src.AlbumID,
-                    Name = string.IsNullOrWhiteSpace(src.Name) ? "N?A" : src.Name,
+                    Name = src.Name ?? "N?A",
                     Genre = (Postgresql.Models.MusicGenre)src.Genre,
-                    SubArtist = string.IsNullOrWhiteSpace(src.SubArtist) ? "" : src.SubArtist,
+                    SubArtist = src.SubArtist ?? "",
                     TimeRelease = DateTime.Parse(!string.IsNullOrWhiteSpace(src.TimeRelease) ? src.TimeRelease : DateTime.MaxValue.ToString())  
                 }
                 );

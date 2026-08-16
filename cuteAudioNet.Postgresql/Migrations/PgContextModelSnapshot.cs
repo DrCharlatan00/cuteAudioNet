@@ -40,11 +40,6 @@ namespace cuteAudioNet.Postgresql.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("AlbumName");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("AlbumName"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("AlbumName"), new[] { "gin_trgm_ops" });
-
                     b.HasIndex("ArtistID");
 
                     b.ToTable("albums");
@@ -103,11 +98,6 @@ namespace cuteAudioNet.Postgresql.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("AlbumID");
-
-                    b.HasIndex("Name");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Name"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Name"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("tracks");
                 });

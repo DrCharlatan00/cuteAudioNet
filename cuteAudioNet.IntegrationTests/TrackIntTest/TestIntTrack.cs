@@ -1,13 +1,8 @@
-﻿using AutoMapper.Configuration.Annotations;
-using cuteAudioNet.APIModels.DTO;
-using cuteAudioNet.APIModels.DTO.Tracks;
-using cuteAudioNet.APIModels.RDTOModel.Tracks;
+﻿using cuteAudioNet.APIModels.DTO;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cuteAudioNet.IntegrationTests;
 
@@ -34,9 +29,6 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     public async Task TestGetTrackCard()
     {
         var result = await client.GetAsync("api/tracks/");
-
-        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
-
         Assert.True(result.IsSuccessStatusCode);
 
         Assert.NotNull(result);
@@ -46,22 +38,19 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     public async Task TestGetTrackFull()
     {
         var result = await client.GetAsync("api/tracks/full");
-        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
-
 
         Assert.True(result.IsSuccessStatusCode);
         Assert.NotNull(result);
     }
 
-   
     [Fact]
     public async Task CreateTrack()
     {
-        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), MusicGenre.ROCK, null, null));
+        var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), APIModels.RDTOModel.MusicGenre.ROCK, null, null));
         Assert.True(result.IsSuccessStatusCode, $"Track not create, Code return server: {result.ReasonPhrase}");
         Assert.NotNull(result);
     }
-    [Fact(Skip = "In prod work")]
+    [Fact]
     public async Task UpdateTrack()
     {
         var testArtist = await _artist.CreateAsyncDb(new Postgresql.Models.ModelArtistDB
@@ -69,10 +58,6 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             ArtistName = "TestArtist",
             NickName = "TestNick"
         });
-        if (_artist.GetByIdAsyncDb((Guid)testArtist.ID) is null) {
-            output.WriteLine("Artist not create, Test stop");
-            return;
-        }
 
         var testAlbum = await _albums.CreateAsyncDb(new Postgresql.Models.ModelAlbumDB
         {
@@ -96,12 +81,12 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
             var updateData = new DTOTrack(
                 Name: "Updated",
                 testAlbum.ID.Value,
-                MusicGenre.POP,
+                APIModels.RDTOModel.MusicGenre.POP,
                 null,
                 null
                 );
 
-            var response = await client.PutAsJsonAsync($"/api/tracks/{testTrack.ID}", updateData);
+            var response = await client.PutAsJsonAsync($"/api/track/{testTrack.ID}", updateData);
 
             // Assert
             Assert.True(response.IsSuccessStatusCode,
@@ -126,27 +111,5 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
                 output.WriteLine("Warn: Not remove test data");
             }
         }
-    }
-
-    [Fact]
-    public async Task TestGetByName() {
-        var data = await client.GetAsync("api/tracks/by-name?name=Track 1");
-
-        if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
-
-        Assert.True(data.IsSuccessStatusCode);
-        Assert.NotNull(data);
-
-    }
-
-    [Fact]
-    public async Task TestSearchByPagName()
-    {
-        var data = await client.GetAsync("api/tracks/by-name-pag?name=test&page=1&pageSize=5");
-        if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
-
-        Assert.True(data.IsSuccessStatusCode);
-        Assert.NotNull(data);
-
     }
 }
