@@ -47,11 +47,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
         {
-            const string cacheKey = "albums:all_card";
 
-            var cacheAlbumsCard = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
-
-            if (cacheAlbumsCard is not null) return cacheAlbumsCard;
 
             List<RDTOAlbumCard> cards = new();
             
@@ -60,7 +56,6 @@ namespace cuteAudioNet.Services
                 cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
             }
             
-            await cache.SetAsync(cacheKey,cards,TimeSpan.FromMinutes(2));
             
             return cards;
         }
@@ -74,12 +69,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOAlbum>> GetFullInfomaionAlbumAsync()
         {
-            const string cacheKey = "albums:all";
-
-            var cacheAl = await cache.GetAsync<List<RDTOAlbum>>(cacheKey);
-
-            if (cacheAl is not null) return cacheAl;
-
+           
             List<RDTOAlbum> data = new List<RDTOAlbum>();
             await foreach (var item in repository.GetAsyncEnumerableAllAlbumDb())
             {
@@ -94,7 +84,6 @@ namespace cuteAudioNet.Services
                         Tracks: MappedTrack
                     ));
             }
-            await cache.SetAsync(cacheKey,data,TimeSpan.FromMinutes(2));
             return data;
 
         }
@@ -116,11 +105,25 @@ namespace cuteAudioNet.Services
         /// </summary>
         /// <param name="page">page in site</param>
         /// <param name="pageSize">count elements for site</param>
-        /// <returns>Collection RDTOAlbumCard </returns>
+        /// <returns>Collection card RDTOAlbumCard </returns>
         /// <exception cref="DbGetCollectionIsNull">  possible if db return null</exception>
         public async Task<IEnumerable<RDTOAlbumCard>> GetByPaginationCard(int page, int pageSize)
         {
-            const string cacheKey = "albums:all_card";
+            if (page <= 0 || page > 10000)
+            {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 10000)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
+            const string cacheVersion = "albums:version";
+
+            var version = cache.GetVersionAsync(cacheVersion);
+
+            string cacheKey = $"albums:card:v{1}:page{page}:size:{pageSize}";
             var cacheData = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
 
             if (cacheData is not null) {
@@ -133,6 +136,56 @@ namespace cuteAudioNet.Services
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
             if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
             return data.Select(Map).ToImmutableList();
+        }
+
+        /// <summary>
+        /// Search by name
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <returns>collection items </returns>
+        public async Task<IEnumerable<RDTOAlbum>> SearchByNameAsync(string name,CancellationToken cancellationToken)
+        {
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+
+            List<RDTOAlbum> albums = new List<RDTOAlbum>();
+            await foreach (var item in repository.SearchByNameAsyncEnumerable(name,cancellationToken).WithCancellation(cancellationToken))
+            {
+                albums.Add(MapFull(item));
+            }
+            return albums;
+
+        }
+
+        /// <summary>
+        /// Search by name with pagination 
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <param name="page">current page</param>
+        /// <param name="pageSize">count items</param>
+        /// <returns>collection paged card items</returns>
+        /// <exception cref="ArgumentException">if page or pageSize is have a bad data</exception>
+        public async Task<IEnumerable<RDTOAlbumCard>> SearchByNameWithPaginationAsync(string name, int page, int pageSize, CancellationToken cancellationToken)
+        {
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is bad or null");
+
+            if (page <= 0 || page > 10000) {
+                throw new ArgumentException("Page is bad");
+            }
+
+            if (pageSize <= 0 || pageSize > 100)
+            {
+                throw new ArgumentException("Page size is bad");
+            }
+
+            List<RDTOAlbumCard> albums = new List<RDTOAlbumCard>();
+            await foreach (var item in repository.SearchByNameWithPaginationAsyncEnumerable(name,page,pageSize,cancellationToken).WithCancellation(cancellationToken))
+            {
+                albums.Add(Map(item));
+            }
+            return albums;
+
         }
 
         #endregion
@@ -161,7 +214,6 @@ namespace cuteAudioNet.Services
             try
             {
                 await cache.RemoveAsync("albums:all_card");
-                await cache.RemoveAsync("albums:all");
             }
             catch (Exception ex)
             {
@@ -186,7 +238,6 @@ namespace cuteAudioNet.Services
             {
                 try {
                     await cache.RemoveAsync("albums:all_card");
-                    await cache.RemoveAsync("albums:all");
                 }
                 catch (Exception ex) {
                     logger.LogCritical(ex.Message);
@@ -229,7 +280,6 @@ namespace cuteAudioNet.Services
             try
             {
                 await cache.RemoveAsync("albums:all_card");
-                await cache.RemoveAsync("albums:all");
             }
             catch (Exception ex)
             {

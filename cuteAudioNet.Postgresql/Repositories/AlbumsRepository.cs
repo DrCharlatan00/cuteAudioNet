@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -70,10 +71,29 @@ namespace cuteAudioNet.Postgresql.Repositories
         public async Task<IEnumerable<ModelAlbumDB>> GetWhisPaginationAsyncDb(int page, int pageSize)
         {
             return await _context.albums.AsNoTracking()
+                .OrderBy(x => x.ID)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        public async IAsyncEnumerable<ModelAlbumDB> SearchByNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken) {
+
+            await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Artist).Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).AsAsyncEnumerable().WithCancellation(cancellationToken)) {
+                yield return item;
+            }
+        }
+
+
+        public async IAsyncEnumerable<ModelAlbumDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page,int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+
+            await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Artist).Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).Skip((page - 1) * pageSize).Take(pageSize).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                yield return item;
+            }
+        }
+
         #endregion
 
         #region Update

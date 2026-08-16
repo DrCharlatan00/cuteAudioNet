@@ -19,10 +19,14 @@ namespace cuteAudioNet.APIModels.Mapping
             CreateMap<ModelTrackDB, RDTOTrack>()
                 .ConstructUsing(src => new RDTOTrack(
                        Name: src.Name,
-                       Artists: src.Album.Artist.NickName + "feat." + src.SubArtist,
+
+                      Artists: src.Album != null && src.Album.Artist != null
+    ? src.Album.Artist.NickName + " feat. " + src.SubArtist
+    : "N/A",
+
                        Genre: (RDTOModel.Tracks.MusicGenre)src.Genre,
                        TimeRelease: src.TimeRelease.HasValue ? src.TimeRelease.Value.ToString("d") : "Time Release not found",
-                       NameAlbum: src.Album.AlbumName ?? "Album Not Found"
+                       NameAlbum: string.IsNullOrWhiteSpace(src.Album.AlbumName) ? "N/A"  : src.Album.AlbumName
                     ));
             #endregion
 
@@ -31,9 +35,9 @@ namespace cuteAudioNet.APIModels.Mapping
                 {
                     ID = Guid.NewGuid(),
                     AlbumID = src.AlbumID,
-                    Name = src.Name ?? "N?A",
+                    Name = string.IsNullOrWhiteSpace(src.Name) ? "N?A" : src.Name,
                     Genre = (Postgresql.Models.MusicGenre)src.Genre,
-                    SubArtist = src.SubArtist ?? "",
+                    SubArtist = string.IsNullOrWhiteSpace(src.SubArtist) ? "" : src.SubArtist,
                     TimeRelease = DateTime.Parse(!string.IsNullOrWhiteSpace(src.TimeRelease) ? src.TimeRelease : DateTime.MaxValue.ToString())  
                 }
                 );

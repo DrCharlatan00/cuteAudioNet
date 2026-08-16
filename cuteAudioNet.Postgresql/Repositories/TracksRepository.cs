@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace cuteAudioNet.Postgresql.Repositories
@@ -13,21 +14,21 @@ namespace cuteAudioNet.Postgresql.Repositories
     {
 
         // !+ Add new method from card aswers
-        private readonly PgContext db = context;
+        private readonly PgContext _context = context;
         #region Get
         public async Task<IEnumerable<ModelTrackDB>> GetAllTrackAsyncDb()
         {
-            return await db.tracks.AsNoTracking().Include(x => x.Album).Include(x => x.Album.Artist).ToListAsync();
+            return await _context.tracks.AsNoTracking().Include(x => x.Album).Include(x => x.Album.Artist).ToListAsync();
         }
 
         public async Task<IEnumerable<ModelTrackDB>> GetOnlyTrackAsyncDb()
         {
-            return await db.tracks.AsNoTracking().ToListAsync();
+            return await _context.tracks.AsNoTracking().ToListAsync();
         }
 
         public async IAsyncEnumerable<ModelTrackDB> GetAllAsyncEnumerableDb()
         {
-            await foreach (var data in db.tracks.AsNoTracking().Include(x => x.Album).Include(x => x.Album.Artist).AsAsyncEnumerable())
+            await foreach (var data in _context.tracks.AsNoTracking().Include(x => x.Album).Include(x => x.Album.Artist).AsAsyncEnumerable())
             {
                 yield return data;
             }
@@ -35,7 +36,7 @@ namespace cuteAudioNet.Postgresql.Repositories
         }
 
         public async IAsyncEnumerable<(string Name,MusicGenre Genre, string ArtistNickname)> GetAllTrackCardAsyncEnumerableDb() {
-            await foreach (var item in  db.tracks.AsNoTracking().Select(u => new
+            await foreach (var item in  _context.tracks.AsNoTracking().Select(u => new
             {
                 u.Name,
                 u.Genre,
@@ -48,9 +49,10 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async Task<IEnumerable<ModelTrackDB>> GetWhisPaginationDb(int page, int pageSize)
         {
-            return await db.tracks
+            return await _context.tracks
                 .Include(x => x.Album)
                 .Include(x => x.Album.Artist)
+                .OrderBy(x => x.ID)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -58,7 +60,31 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async Task<ModelTrackDB?> GetByIDAsyncDb(Guid id)
         {
-            return await db.tracks.AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
+            return await _context.tracks.AsNoTracking().Include(x => x.Album).ThenInclude(x => x.Artist).FirstOrDefaultAsync(x => x.ID == id);
+        }
+
+        public async IAsyncEnumerable<ModelTrackDB> SearchByNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken) {
+            await foreach (var item in _context.tracks.AsNoTracking().Include(x => x.Album).Where(x => x.Name.Contains(name)).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                yield return item;
+            }
+        }
+
+        public async IAsyncEnumerable<ModelTrackDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var item in _context.tracks
+     .AsNoTracking()
+     .Where(x => x.Name.Contains(name))
+     .OrderBy(x => x.ID)
+     .Skip((page - 1) * pageSize)
+     .Take(pageSize)
+     .Include(x => x.Album)
+     .ThenInclude(x => x.Artist)
+     .AsAsyncEnumerable()
+     .WithCancellation(cancellationToken))
+            {
+                yield return item;
+            }
         }
 
 
@@ -69,12 +95,12 @@ namespace cuteAudioNet.Postgresql.Repositories
         public async Task<(ModelTrackDB? UpdatedModel, string Message)> UpdateTracksAsyncDb(ModelTrackDB updatedTrack)
         {
             ArgumentException.ThrowIfNullOrEmpty(updatedTrack.ID.ToString());
-            var old = await db.tracks.FirstOrDefaultAsync(x => x.ID == updatedTrack.ID);
+            var old = await _context.tracks.FirstOrDefaultAsync(x => x.ID == updatedTrack.ID);
 
             if (old is null)
                 return (null, "Track not found");
 
-            var album = await db.albums
+            var album = await _context.albums
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ID == updatedTrack.AlbumID);
 
@@ -88,7 +114,7 @@ namespace cuteAudioNet.Postgresql.Repositories
                 old.AlbumID = updatedTrack.AlbumID;
             }
 
-            await db.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             return (old, "Updated");
         }
@@ -98,12 +124,12 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async Task<string?> RemoveAsyncDb(Guid id)
         {
-            var rem = await db.tracks.FirstOrDefaultAsync(x => x.ID == id);
+            var rem = await _context.tracks.FirstOrDefaultAsync(x => x.ID == id);
             if (rem is null) return "Not found";
             try
             {
-                db.tracks.Remove(rem);
-                await db.SaveChangesAsync();
+                _context.tracks.Remove(rem);
+                await _context.SaveChangesAsync();
                 return null;
             }
             catch (Exception ex)
@@ -121,8 +147,8 @@ namespace cuteAudioNet.Postgresql.Repositories
             try
             {
                 newTrack.ID = Guid.NewGuid();
-                await db.tracks.AddAsync(newTrack);
-                await db.SaveChangesAsync();
+                await _context.tracks.AddAsync(newTrack);
+                await _context.SaveChangesAsync();
                 return (newTrack.ID, "Created");
             }
             catch (Exception ex)

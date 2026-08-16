@@ -4,6 +4,7 @@ using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
@@ -63,32 +64,57 @@ namespace cuteAudioNet.Controllers
         /// Do Not use, Method not released 
         /// </summary>
         /// <returns>Dead</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>This not work, do not use method</remarks>
-        [Experimental("NOT_RELEASED_CODE")]
         [HttpGet("pag-card")]
-        public async Task<IActionResult> GetCardTrackWhisPag() {
-            throw new NotImplementedException();
+        public async Task<IActionResult> GetCardTrackWhisPag([FromQuery]int page, [FromQuery] int pageSize) {
+            var data = await _trackService.GetByPaginationCardAsync(page, pageSize);
+            return data is not null ? Ok(data) : BadRequest(new { Message = "bad page or page size" });
+        }
+
+        /// <summary>
+        /// Get tracks by name
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <returns>collection track by name</returns>
+        [HttpGet("by-name")]
+        [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(IEnumerable<RDTOTrack>))]
+        public async Task<IActionResult> GetByName([FromQuery] string name, CancellationToken cancellationToken) {
+            var data = await _trackService.SearchByNameAsync(name,cancellationToken);
+            return Ok(data);
+        }
+
+        /// <summary>
+        /// Get tracks by name with pagination
+        /// </summary>
+        /// <param name="name">the name by which you want to search</param>
+        /// <param name="page">current page</param>
+        /// <param name="pageSize">count items</param>
+        /// <returns>Collection paged tracks by name</returns>
+        [HttpGet("by-name-pag")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RDTOCardTrack>))]
+        public async Task<IActionResult> GetByNamePag([FromQuery] string name, [FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken)
+        {
+            var data = await _trackService.SearchByNamePaginationAsync(name, page, pageSize, cancellationToken);
+            return Ok(data);
         }
 
         #endregion
 
         #region Update
 
-        /// <summary>
-        /// Update track in db 
-        /// </summary>
-        /// <param name="id">ID Track in db</param>
-        /// <param name="Track">
-        /// Infotmation on track
-        /// string Name,
-        /// Guid AlbumID,
-        /// MusicGenre Genre,
-        /// string TimeRelease or null,
-        /// string SubArtist or null
-        /// </param>
-        /// <returns>Updated model</returns>
-        [HttpPut("{id:guid}")]
+            /// <summary>
+            /// Update track in db 
+            /// </summary>
+            /// <param name="id">ID Track in db</param>
+            /// <param name="Track">
+            /// Infotmation on track
+            /// string Name,
+            /// Guid AlbumID,
+            /// MusicGenre Genre,
+            /// string TimeRelease or null,
+            /// string SubArtist or null
+            /// </param>
+            /// <returns>Updated model</returns>
+            [HttpPut("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ModelTrackDB))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateTrackAsync(Guid id,[FromBody] DTOTrack Track) {
