@@ -79,7 +79,7 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async IAsyncEnumerable<ModelAlbumDB> SearchByNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken) {
 
-            await foreach (var item in _context.albums.AsNoTracking().Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).AsAsyncEnumerable().WithCancellation(cancellationToken)) {
+            await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Artist).Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).AsAsyncEnumerable().WithCancellation(cancellationToken)) {
                 yield return item;
             }
         }
@@ -88,7 +88,7 @@ namespace cuteAudioNet.Postgresql.Repositories
         public async IAsyncEnumerable<ModelAlbumDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page,int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
 
-            await foreach (var item in _context.albums.AsNoTracking().Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).Skip((page - 1) * pageSize).Take(pageSize).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            await foreach (var item in _context.albums.AsNoTracking().Include(x => x.Artist).Where(x => x.AlbumName.Contains(name)).OrderBy(x => x.ID).Skip((page - 1) * pageSize).Take(pageSize).AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 yield return item;
             }

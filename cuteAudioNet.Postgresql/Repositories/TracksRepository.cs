@@ -72,8 +72,17 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async IAsyncEnumerable<ModelTrackDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var item in _context.tracks.AsNoTracking().Where(x => x.Name.Contains(name)).OrderBy(x => x.ID).Skip((page - 1) * pageSize).Take(pageSize).AsAsyncEnumerable().WithCancellation(cancellationToken))
-            { 
+            await foreach (var item in _context.tracks
+     .AsNoTracking()
+     .Where(x => x.Name.Contains(name))
+     .OrderBy(x => x.ID)
+     .Skip((page - 1) * pageSize)
+     .Take(pageSize)
+     .Include(x => x.Album)
+     .ThenInclude(x => x.Artist)
+     .AsAsyncEnumerable()
+     .WithCancellation(cancellationToken))
+            {
                 yield return item;
             }
         }
