@@ -12,6 +12,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using cuteAudioNet.Services.Caching;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,9 @@ builder.Services.AddStackExchangeRedisCache(options => {
 });
 
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisMain"))
+    );
 
 #endregion
 builder.Services.AddAutoMapper(cnf => {

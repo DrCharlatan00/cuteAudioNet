@@ -60,7 +60,7 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async Task<ModelTrackDB?> GetByIDAsyncDb(Guid id)
         {
-            return await _context.tracks.AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
+            return await _context.tracks.AsNoTracking().Include(x => x.Album).ThenInclude(x => x.Artist).FirstOrDefaultAsync(x => x.ID == id);
         }
 
         public async IAsyncEnumerable<ModelTrackDB> SearchByNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken) {
