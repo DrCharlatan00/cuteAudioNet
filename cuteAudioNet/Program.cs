@@ -54,6 +54,21 @@ builder.Services.AddDbContext<PgContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultDB") ?? throw new ArgumentNullException("Connection string is null ??"));
 });
 
+builder.Services
+    .AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultDB")
+            ?? throw new ArgumentNullException("Connection string is null"),
+        healthQuery: "SELECT 1;",
+        name: "cuteAudioNetDb",
+        tags: ["db", "ready"]
+    ).AddRedis(
+        builder.Configuration.GetConnectionString("RedisMain")
+            ?? throw new ArgumentNullException("RedisMain"),
+        name: "cuteAudioNetRedis",
+        tags: ["redis", "ready"]);
+;
+
 builder.Services.AddStackExchangeRedisCache(options => {
     options.InstanceName = "cuteAudioCache";
     options.Configuration = builder.Configuration.GetConnectionString("RedisMain");
@@ -99,6 +114,8 @@ builder.Services.AddTransient<IValidator<DTOArtist>, ValidatorsArtist>();
 #endregion
 
 
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -124,5 +141,7 @@ foreach (var endpoint in app.Services
     Console.WriteLine(endpoint.DisplayName);
 }
 #endif
+
+app.MapHealthChecks("/health-project");
 
 app.Run();
