@@ -132,7 +132,7 @@ namespace cuteAudioNet.Services
         #endregion
 
         #region Update
-        public async Task<RDTOArtist> UpdateAsync(Guid id ,DTOArtist artist)
+        public async Task<RDTOArtist> UpdateAsync(Guid id, DTOArtist artist)
         {
             ArgumentNullException.ThrowIfNull(artist);
             await validator.ValidateAndThrowAsync(artist);
@@ -238,7 +238,15 @@ namespace cuteAudioNet.Services
         #region Mappers
         private RDTOArtist MapFull(ModelArtistDB model) => mapper.Map<RDTOArtist>(model);
         private RDTOOnlyArtistInfo MapInfo(ModelArtistDB model) => mapper.Map<RDTOOnlyArtistInfo>(model);
-        private RDTOAlbumCard MapAlbumCard(ModelAlbumDB model) => mapper.Map<RDTOAlbumCard>(model);
+        private RDTOAlbumCard MapAlbumCard(ModelAlbumDB model) {
+            try
+            {
+                return mapper.Map<RDTOAlbumCard>(model);
+            }
+            catch {
+                return new RDTOAlbumCard(model.AlbumName,null);
+            }
+        }
         private RDTOAlbum MapAlbum(ModelAlbumDB model) => mapper.Map<RDTOAlbum>(model);
         #endregion
     }
