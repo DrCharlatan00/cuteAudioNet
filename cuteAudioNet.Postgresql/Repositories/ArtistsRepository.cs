@@ -14,6 +14,7 @@ namespace cuteAudioNet.Postgresql.Repositories
         private readonly PgContext _context = context;
 
         #region Get
+       
         public async Task<IEnumerable<ModelArtistDB>> GetAllArtistDb(CancellationToken cancellationToken)
         {
             return await _context.artists.Include(x => x.Albums).AsNoTracking().ToListAsync(cancellationToken);
