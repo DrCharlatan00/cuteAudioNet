@@ -55,4 +55,7 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         Assert.True(result.IsSuccessStatusCode);
         Assert.NotNull(result);
     }
+
+    
+
 }
