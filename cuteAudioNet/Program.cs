@@ -62,7 +62,12 @@ builder.Services
         healthQuery: "SELECT 1;",
         name: "cuteAudioNetDb",
         tags: ["db", "ready"]
-    );
+    ).AddRedis(
+        builder.Configuration.GetConnectionString("RedisMain")
+            ?? throw new ArgumentNullException("RedisMain"),
+        name: "cuteAudioNetRedis",
+        tags: ["redis", "ready"]);
+;
 
 builder.Services.AddStackExchangeRedisCache(options => {
     options.InstanceName = "cuteAudioCache";
