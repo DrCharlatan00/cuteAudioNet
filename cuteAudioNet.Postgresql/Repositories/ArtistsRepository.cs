@@ -59,7 +59,7 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async IAsyncEnumerable<ModelArtistDB> SearchByNickNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var item in _context.artists.AsNoTracking().Where(x => x.NickName == name).AsAsyncEnumerable())
+            await foreach (var item in _context.artists.AsNoTracking().Include(x =>x.Albums).Where(x => x.NickName == name).AsAsyncEnumerable())
             {
                 yield return item;
             }
@@ -67,7 +67,8 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         public async IAsyncEnumerable<ModelArtistDB> SearchByNickNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var item in _context.artists.AsNoTracking().Where(x => x.NickName == name).Skip((page - 1) * pageSize).Take(pageSize).ToAsyncEnumerable())
+#warning Need Select
+            await foreach (var item in _context.artists.AsNoTracking().Include(x => x.Albums).Where(x => x.NickName == name).Skip((page - 1) * pageSize).Take(pageSize).ToAsyncEnumerable())
             {
                 yield return item;
             }

@@ -60,10 +60,18 @@ builder.Services.AddStackExchangeRedisCache(options => {
 });
 
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisMain"))
-    );
-
+try
+{
+    builder.Services.AddSingleton<IConnectionMultiplexer>(
+        ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisMain") ?? throw new ArgumentNullException("Redis connection string is null ??"))
+        );
+}
+catch (Exception ex) {
+    Console.WriteLine("Init Failed: ");
+    Console.BackgroundColor = ConsoleColor.Red;
+    Console.WriteLine(ex.ToString());
+    Console.BackgroundColor = ConsoleColor.Black;
+}
 #endregion
 
 #region Mapping 

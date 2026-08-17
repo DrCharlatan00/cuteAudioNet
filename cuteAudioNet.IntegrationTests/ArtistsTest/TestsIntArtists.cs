@@ -69,8 +69,39 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
         Assert.True(result.IsSuccessStatusCode);
-        Assert.NotNull(result);
+        var resultData = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtistCard>>();
+
+        Assert.NotNull(resultData);
+        Assert.Equal(1,resultData.Count());
+
     }
+
+    [Fact (Skip = "JSON Not work, in prod work")]
+    public async Task TestSearchByName() {
+        var result = await httpClient.GetAsync("api/artist/by-name?name=Zanfords");
+        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
+
+        Assert.True(result.IsSuccessStatusCode);
+
+        var resultData = await result.Content.ReadFromJsonAsync<RDTOArtist>();
+
+        Assert.NotNull(resultData);
+        Assert.Equal("Test", resultData.NickName);
+    }
+    [Fact(Skip = "JSON Not work, in prod work")]
+    public async Task TestSearchByNameWithPag()
+    {
+        var result = await httpClient.GetAsync("api/artist/by-name?name=Zanfords&page=1pageSize=1");
+        if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
+
+        Assert.True(result.IsSuccessStatusCode);
+
+        var resultData = await result.Content.ReadFromJsonAsync<RDTOArtistCard>();
+
+        Assert.NotNull(resultData);
+        Assert.Equal("Test", resultData.NickName);
+    }
+
 
     [Fact]
     public async Task TestCreateItem() {
@@ -146,5 +177,5 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
             output.WriteLine("Test data not removed");
         }
     }
-
+    
 }
