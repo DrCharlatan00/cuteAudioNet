@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace cuteAudioNet.Postgresql.Repositories
@@ -13,16 +14,24 @@ namespace cuteAudioNet.Postgresql.Repositories
         private readonly PgContext _context = context;
 
         #region Get
-        public async Task<IEnumerable<ModelArtistDB>> GetAllArtistDb()
+        public async Task<IEnumerable<ModelArtistDB>> GetAllArtistDb(CancellationToken cancellationToken)
         {
-            return await _context.artists.Include(x => x.Albums).AsNoTracking().ToListAsync();
+            return await _context.artists.Include(x => x.Albums).AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async IAsyncEnumerable<ModelArtistDB> GetAsyncEnumerableAllArtistDb()
+        public async IAsyncEnumerable<ModelArtistDB> GetAsyncEnumerableAllArtistDb([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var item in _context.artists.Include(x => x.Albums).AsNoTracking().AsAsyncEnumerable())
+            await foreach (var item in _context.artists.Include(x => x.Albums).AsNoTracking().AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 yield return item;
+            }
+        }
+
+        public async IAsyncEnumerable<(string NickName, IEnumerable<ModelAlbumDB> album)> GetWithCardArtistsAsyncEnumertable([EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var item in _context.artists.AsNoTracking().Select(u => new { u.NickName, u.Albums }).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                yield return (item.NickName, item.Albums);
             }
         }
 
@@ -31,18 +40,36 @@ namespace cuteAudioNet.Postgresql.Repositories
             return await _context.artists.Include(x => x.Albums).AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
         }
 
-        public async Task<IEnumerable<ModelArtistDB>> GetAllWhisPaginationAsyncDb(int page, int pageSize)
+        public async Task<IEnumerable<ModelArtistDB>> GetOnlyArtistsDb(CancellationToken cancellationToken)
         {
-            return await _context.artists.AsNoTracking()
+            return await _context.artists.AsNoTracking().ToListAsync(cancellationToken);
+        }
+        public async Task<IEnumerable<ModelArtistDB>> GetWithPaginationAsyncDB(int page, int pageSize, CancellationToken cancellationToken)
+        {
+            return await _context.artists
+                .AsNoTracking()
                 .Include(x => x.Albums)
+                .OrderBy(x => x.ID)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken)
+                ;
         }
 
-        public async Task<IEnumerable<ModelArtistDB>> GetOnlyArtistsDb()
+        public async IAsyncEnumerable<ModelArtistDB> SearchByNickNameAsyncEnumerable(string name, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return await _context.artists.AsNoTracking().ToListAsync();
+            await foreach (var item in _context.artists.AsNoTracking().Where(x => x.NickName == name).AsAsyncEnumerable())
+            {
+                yield return item;
+            }
+        }
+
+        public async IAsyncEnumerable<ModelArtistDB> SearchByNickNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var item in _context.artists.AsNoTracking().Where(x => x.NickName == name).Skip((page - 1) * pageSize).Take(pageSize).ToAsyncEnumerable())
+            {
+                yield return item;
+            }
         }
         #endregion
 
@@ -54,18 +81,13 @@ namespace cuteAudioNet.Postgresql.Repositories
             if (old is null) return (null, "Not Found");
             try
             {
-                var art = new ModelArtistDB
-                {
-                    ID = old.ID,
-                    ArtistName = newModel.ArtistName ?? old.ArtistName,
-                    NickName = newModel.NickName ?? old.NickName,
-                    Albums = newModel.Albums ?? old.Albums,
-                    BornDate = newModel.BornDate ?? old.BornDate,
-                    Pathonymic = newModel.Pathonymic ?? old.Pathonymic,
-                    Surname = newModel.Surname ?? old.Surname,
-                };
+                old.ArtistName = !string.IsNullOrWhiteSpace(newModel.ArtistName) ? newModel.ArtistName : old.ArtistName;
+                old.NickName = !string.IsNullOrWhiteSpace(newModel.NickName) ? newModel.NickName : old.NickName;
+                old.Surname = !string.IsNullOrWhiteSpace(newModel.Surname) ? newModel.Surname : old.Surname;
+                old.BornDate = newModel.BornDate ?? old.BornDate;
+                old.Pathonymic = !string.IsNullOrWhiteSpace(newModel.Pathonymic) ? newModel.Pathonymic : old.Pathonymic;
                 await _context.SaveChangesAsync();
-                return (art, "Updated");
+                return (old, "Updated");
             }
             catch (Exception ex)
             {

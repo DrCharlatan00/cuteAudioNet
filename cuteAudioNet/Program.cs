@@ -14,6 +14,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using cuteAudioNet.Services.Caching;
 using StackExchange.Redis;
+using cuteAudioNet.APIModels.DTO.Artists;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,10 +65,14 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
     );
 
 #endregion
+
+#region Mapping 
 builder.Services.AddAutoMapper(cnf => {
     cnf.AddProfile<MappingTracksProfile>();
     cnf.AddProfile<MappingAlbumProfile>();
+    cnf.AddProfile<MappingArtistProfile>();
 });
+#endregion
 
 builder.Services.AddScoped<IAlbumsRepository, AlbumsRepository>();
 builder.Services.AddScoped<ITracksRepository, TracksRepository>();
@@ -76,12 +81,14 @@ builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
 
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IArtistService, ArtistService>();
 
-
+#region Validators
 builder.Services.AddTransient<IValidator<DTOTrack>, ValidatorTrack>();
 builder.Services.AddTransient<IValidator<DTOCreateAlbum>, ValidatorCreateAlbum> ();
 builder.Services.AddTransient<IValidator<DTOUpdateAlbum>, ValidatorUpdateAlbum>();
-
+builder.Services.AddTransient<IValidator<DTOArtist>, ValidatorsArtist>();
+#endregion
 
 
 var app = builder.Build();
