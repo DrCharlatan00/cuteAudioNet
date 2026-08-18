@@ -7,14 +7,11 @@ using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
+using cuteAudioNet.SignalRHubs;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
+
 
 namespace cuteAudioNet.Services
 {
@@ -23,16 +20,18 @@ namespace cuteAudioNet.Services
         IMapper mapper,
         IValidator<DTOTrack> validator,
         ICacheService cache,
-        ILogger<TrackService> logger
+        ILogger<TrackService> logger,
+        IHubContext<TracksHub> hubContext
         ) : ITrackService
     {
         private readonly ITracksRepository _tracksRepository = tracksRepository;
         private readonly IMapper _mapper = mapper;
         private readonly IValidator<DTOTrack> _validator = validator;
         private readonly ICacheService cache = cache;
+        private readonly IHubContext<TracksHub> hubContext = hubContext;
 
         #region Get
-        
+
         public async Task<IEnumerable<RDTOCardTrack>> GetTrackCardAsync()
         {
 
@@ -167,6 +166,7 @@ namespace cuteAudioNet.Services
                 //logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
                 logger.LogCritical("data is redis not removed with create in class {track} \nException {exc}", nameof(TrackService), ex.Message);
             }
+            await hubContext.Clients.All.SendAsync("NewTrackCreated",result.ID);
             return (Guid)result.ID;
         }
         #endregion
@@ -185,6 +185,7 @@ namespace cuteAudioNet.Services
                 {
                     logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
                 }
+                await hubContext.Clients.All.SendAsync("TrackRemoved", id);
                 return true;
             }
             logger.LogInformation("Not remove item with id: {id}, Message: {res}",id,res);
@@ -210,7 +211,9 @@ namespace cuteAudioNet.Services
             {
                 logger.LogCritical("data is redis not removed with update in class {track} \nException {exc}", nameof(TrackService), ex.Message);
             }
+            await hubContext.Clients.All.SendAsync("TrackUpdated",id);
             return res.UpdatedModel;
+
         }
         #endregion
 

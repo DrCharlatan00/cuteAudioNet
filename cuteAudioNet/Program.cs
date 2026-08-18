@@ -15,6 +15,7 @@ using Serilog;
 using cuteAudioNet.Services.Caching;
 using StackExchange.Redis;
 using cuteAudioNet.APIModels.DTO.Artists;
+using cuteAudioNet.SignalRHubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,7 +114,7 @@ builder.Services.AddTransient<IValidator<DTOUpdateAlbum>, ValidatorUpdateAlbum>(
 builder.Services.AddTransient<IValidator<DTOArtist>, ValidatorsArtist>();
 #endregion
 
-
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -143,6 +144,9 @@ foreach (var endpoint in app.Services
 
 app.MapHealthChecks("/health-project");
 
-
-
+#region SignalR
+app.MapHub<TracksHub>("/hubs/tracks");
+app.MapHub<ArtistsHub>("/hubs/artists");
+app.MapHub<AlbumsHub>("/hubs/albums");
+#endregion
 app.Run();
