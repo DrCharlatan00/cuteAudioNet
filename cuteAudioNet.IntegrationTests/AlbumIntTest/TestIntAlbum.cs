@@ -1,13 +1,9 @@
 ﻿using cuteAudioNet.APIModels.DTO.Albums;
+using cuteAudioNet.APIModels.RDTOModel.Albums;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.Net.Http.Json;
-using System.Text;
 using Xunit.Abstractions;
 
 namespace cuteAudioNet.IntegrationTests.AlbumIntTest
@@ -36,7 +32,11 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 var data = await client.GetAsync("api/album/");
                 if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
                 Assert.True(data.IsSuccessStatusCode);
-                Assert.NotNull(data);
+
+                var dataRes = await data.Content.ReadFromJsonAsync<IEnumerable<RDTOAlbumCard>>();
+
+                Assert.NotNull(dataRes);
+
             }
             catch(Exception ex) {
                 output.WriteLine(ex.Message);
@@ -51,7 +51,10 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 var data = await client.GetAsync("api/album/full");
                 if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
                 Assert.True(data.IsSuccessStatusCode);
-                Assert.NotNull(data);
+
+                var dataRes = await data.Content.ReadFromJsonAsync<IEnumerable<RDTOAlbum>>();
+
+                Assert.NotNull(dataRes);
             }
             catch (Exception ex) {
                 output.WriteLine(ex.Message);
@@ -65,7 +68,10 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 var data = await client.GetAsync("api/album/pag&page=1&pageSize=1");
                 if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
                 Assert.True(data.IsSuccessStatusCode);
-                Assert.NotNull(data);
+                var dataRes = await data.Content.ReadFromJsonAsync<IEnumerable<RDTOAlbumCard>>();
+
+                Assert.NotNull(dataRes);
+                Assert.Single(dataRes);
             }
             catch (Exception ex) {
                 output.WriteLine(ex.Message);
@@ -119,7 +125,10 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 var result = await client.GetAsync($"api/album/{idAlbum}");
                 if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
                 Assert.True(result.IsSuccessStatusCode);
-                Assert.NotNull(result);
+                var dataRes = await result.Content.ReadFromJsonAsync<RDTOAlbumCard>();
+
+                Assert.NotNull(dataRes);
+                Assert.Equal("Test",dataRes.Name);
             }
             finally {
                 try
@@ -169,8 +178,18 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
 
 
                 Assert.True(result.IsSuccessStatusCode);
-                Assert.NotNull(result);
+                bool isCreate = false;
+
+                await foreach (var item in repo.GetAsyncEnumerableAllAlbumDb())
+                {
+                    if (item.AlbumName == "TTTTEST")
+                    {
+                        isCreate = true;
+                    }
+                }
+                if (!isCreate) Assert.Fail("Not found element in db");
                 
+
             }
             finally {
                 try
@@ -242,7 +261,6 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
                 Assert.True(result.IsSuccessStatusCode);
-                Assert.NotNull(result);
             }
             finally {
                 try
@@ -315,15 +333,24 @@ namespace cuteAudioNet.IntegrationTests.AlbumIntTest
                 if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
                 Assert.True(result.IsSuccessStatusCode);
-                Assert.NotNull(result);
 
+                bool IsUpdated = false;
+                await foreach (var item in repo.GetAsyncEnumerableAllAlbumDb())
+                {
+
+                    if (item.AlbumName == "TREST")
+                    {
+                        IsUpdated = true;
+                    }
+                }
+                if (!IsUpdated) Assert.Fail("Item not update");
             }
             finally {
                 try
                 {
                     await foreach (var item in repo.GetAsyncEnumerableAllAlbumDb())
                     {
-                        if (item.AlbumName == "TTTTEST")
+                        if (item.AlbumName == "TREST")
                         {
                             idAlbum = item.ID;
                             break;

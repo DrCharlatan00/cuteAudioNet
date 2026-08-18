@@ -7,7 +7,9 @@ using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
+using cuteAudioNet.SignalRHubs;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using StackExchange.Redis;
 using System.Data;
 
@@ -19,7 +21,8 @@ namespace cuteAudioNet.Services
         IValidator<DTOArtist> validator,
         ILogger<ArtistService> logger,
         ICacheService cache,
-        IMapper mapper
+        IMapper mapper,
+        IHubContext<ArtistsHub> hubContext
         ) : IArtistService
     {
         private readonly IArtistsRepository repository = repository;
@@ -27,6 +30,7 @@ namespace cuteAudioNet.Services
         private readonly ILogger<ArtistService> logger = logger;
         private readonly ICacheService cache = cache;
         private readonly IMapper mapper = mapper;
+        private readonly IHubContext<ArtistsHub> hubContext = hubContext;
 
         #region Get
         public async Task<IEnumerable<RDTOArtist>> GetFullArtistAsync(CancellationToken cancellationToken)
@@ -169,6 +173,7 @@ namespace cuteAudioNet.Services
             if (item.updateModel is not null)
             {
                 await cache.IncrementAsync("artist:version");
+                await hubContext.Clients.All.SendAsync("ArtistUpdated",item.updateModel.ID);
                 return MapFull(item.updateModel);
             }
             logger.LogError("Update operation is failed\nerror: {error} \nModel: {@model}", item.Message, artist);
@@ -212,6 +217,7 @@ namespace cuteAudioNet.Services
             if (result.ID is not null)
             {
                 await cache.IncrementAsync("artist:version");
+                await hubContext.Clients.All.SendAsync("NewArtistCreated", result.ID);
                 return (Guid)result.ID;
 
             }
@@ -227,6 +233,7 @@ namespace cuteAudioNet.Services
             if (result is null)
             {
                 await cache.IncrementAsync("artist:version");
+                await hubContext.Clients.All.SendAsync("ArtistRemoved", id);
                 return true;
             }
             logger.LogError("Remove is failed, info error: {error} , Guid {id}", result, id);

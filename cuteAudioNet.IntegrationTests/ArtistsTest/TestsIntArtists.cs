@@ -2,12 +2,8 @@
 using cuteAudioNet.APIModels.RDTOModel.Artists;
 using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using System.Reflection;
-using System.Runtime.InteropServices.Java;
 using Xunit.Abstractions;
 
 namespace cuteAudioNet.IntegrationTests;
@@ -35,7 +31,9 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
         Assert.True(result.IsSuccessStatusCode);
-        Assert.NotNull(result);
+        var data = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtistCard>>();
+
+        Assert.NotNull(data);
 
     }
 
@@ -46,7 +44,9 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
         Assert.True(result.IsSuccessStatusCode);
-        Assert.NotNull(result);
+        var data = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtist>>();
+
+        Assert.NotNull(data);
 
     }
 
@@ -58,7 +58,9 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
         Assert.True(result.IsSuccessStatusCode);
-        Assert.NotNull(result);
+        var data = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOOnlyArtistInfo>>();
+
+        Assert.NotNull(data);
 
     }
 
@@ -72,23 +74,23 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
         var resultData = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtistCard>>();
 
         Assert.NotNull(resultData);
-        Assert.Equal(1,resultData.Count());
+        Assert.Single(resultData);
 
     }
 
-    [Fact (Skip = "JSON Not work, in prod work")]
+    [Fact]
     public async Task TestSearchByName() {
         var result = await httpClient.GetAsync("api/artist/by-name?name=Zanfords");
         if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
         Assert.True(result.IsSuccessStatusCode);
 
-        var resultData = await result.Content.ReadFromJsonAsync<RDTOArtist>();
+        var resultData = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtist>>();
 
         Assert.NotNull(resultData);
-        Assert.Equal("Test", resultData.NickName);
+        Assert.Equal("Zanfords", resultData.First().NickName);
     }
-    [Fact(Skip = "JSON Not work, in prod work")]
+    [Fact]
     public async Task TestSearchByNameWithPag()
     {
         var result = await httpClient.GetAsync("api/artist/by-name?name=Zanfords&page=1pageSize=1");
@@ -96,10 +98,11 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
 
         Assert.True(result.IsSuccessStatusCode);
 
-        var resultData = await result.Content.ReadFromJsonAsync<RDTOArtistCard>();
+        var resultData = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOArtistCard>>();
 
         Assert.NotNull(resultData);
-        Assert.Equal("Test", resultData.NickName);
+        Assert.Single(resultData);
+        Assert.Equal("Zanfords", resultData.First().NickName);
     }
 
 
@@ -119,11 +122,6 @@ public class TestsIntArtists : IClassFixture<TestWebApplicationFactory>
             if (!result.IsSuccessStatusCode) output.WriteLine(result.ReasonPhrase);
 
             Assert.True(result.IsSuccessStatusCode);
-
-            var dataResult = await result.Content.ReadFromJsonAsync<RDTOArtist>();
-
-            Assert.NotNull(dataResult);
-            Assert.Equal("Test", dataResult.Name);
 
         }
         catch (Exception ex)

@@ -8,7 +8,9 @@ using cuteAudioNet.Postgresql.Models;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
 using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
+using cuteAudioNet.SignalRHubs;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -27,7 +29,8 @@ namespace cuteAudioNet.Services
         IMapper mapper,
         IValidator<DTOCreateAlbum> createValidator,
         IValidator<DTOUpdateAlbum> updateValidator,
-        ICacheService cache
+        ICacheService cache,
+        IHubContext<AlbumsHub> hubContext
         ) : IAlbumService
     {
         private readonly IAlbumsRepository repository = repository;
@@ -36,6 +39,7 @@ namespace cuteAudioNet.Services
         private readonly IValidator<DTOCreateAlbum> createValidator = createValidator;
         private readonly IValidator<DTOUpdateAlbum> updateValidator = updateValidator;
         private readonly ICacheService cache = cache;
+        private readonly IHubContext<AlbumsHub> hubContext = hubContext;
 
         #region Get 
         /// <summary>
@@ -213,12 +217,13 @@ namespace cuteAudioNet.Services
             }
             try
             {
-                await cache.RemoveAsync("albums:all_card");
+                await cache.IncrementAsync("albums:version");
             }
             catch (Exception ex)
             {
                 logger.LogCritical(ex.Message);
             }
+            await hubContext.Clients.All.SendAsync("AlbumUpdated",model.id);
             return MapFull(answer.updateModel);
         }
         #endregion
@@ -237,11 +242,12 @@ namespace cuteAudioNet.Services
             if (result is null) 
             {
                 try {
-                    await cache.RemoveAsync("albums:all_card");
+                    await cache.IncrementAsync("albums:version");
                 }
                 catch (Exception ex) {
                     logger.LogCritical(ex.Message);
                 }
+                await hubContext.Clients.All.SendAsync("AlbumRemoved", id);
                 return true;
 
             }
@@ -279,12 +285,13 @@ namespace cuteAudioNet.Services
             }
             try
             {
-                await cache.RemoveAsync("albums:all_card");
+                await cache.IncrementAsync("albums:version");
             }
             catch (Exception ex)
             {
                 logger.LogCritical(ex.Message);
             }
+            await hubContext.Clients.All.SendAsync("NewAlbumCreated", result.ID);
             return (Guid)result.ID;
         }
 
