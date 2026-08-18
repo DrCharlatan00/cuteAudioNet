@@ -1,13 +1,9 @@
-﻿using AutoMapper.Configuration.Annotations;
-using cuteAudioNet.APIModels.DTO;
-using cuteAudioNet.APIModels.DTO.Tracks;
+﻿using cuteAudioNet.APIModels.DTO.Tracks;
 using cuteAudioNet.APIModels.RDTOModel.Tracks;
 using cuteAudioNet.Postgresql.Repositories.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cuteAudioNet.IntegrationTests;
 
@@ -39,7 +35,9 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
 
         Assert.True(result.IsSuccessStatusCode);
 
-        Assert.NotNull(result);
+        var data = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOCardTrack>>();
+
+        Assert.NotNull(data);
     }
 
     [Fact]
@@ -50,7 +48,9 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
 
 
         Assert.True(result.IsSuccessStatusCode);
-        Assert.NotNull(result);
+        var data = await result.Content.ReadFromJsonAsync<IEnumerable<RDTOTrack>>();
+
+        Assert.NotNull(data);
     }
 
    
@@ -59,7 +59,6 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
     {
         var result = await client.PostAsJsonAsync("api/tracks/create", new DTOTrack("Test", Guid.Parse("fe2923bc-c740-4d00-9e67-383320f2ee99"), MusicGenre.ROCK, null, null));
         Assert.True(result.IsSuccessStatusCode, $"Track not create, Code return server: {result.ReasonPhrase}");
-        Assert.NotNull(result);
     }
     [Fact(Skip = "In prod work")]
     public async Task UpdateTrack()
@@ -130,23 +129,32 @@ public class TestIntTrack : IClassFixture<TestWebApplicationFactory>
 
     [Fact]
     public async Task TestGetByName() {
-        var data = await client.GetAsync("api/tracks/by-name?name=Track 1");
+        var data = await client.GetAsync("api/tracks/by-name?name=Track 3");
 
         if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
 
         Assert.True(data.IsSuccessStatusCode);
+        var dataRes = await data.Content.ReadFromJsonAsync<IEnumerable<RDTOTrack>>();
+
         Assert.NotNull(data);
+        Assert.Equal("Track 3",dataRes.First().Name);
 
     }
 
     [Fact]
     public async Task TestSearchByPagName()
     {
-        var data = await client.GetAsync("api/tracks/by-name-pag?name=test&page=1&pageSize=5");
+        var data = await client.GetAsync("api/tracks/by-name-pag?name=Track 3&page=1&pageSize=1");
         if (!data.IsSuccessStatusCode) output.WriteLine(data.ReasonPhrase);
 
         Assert.True(data.IsSuccessStatusCode);
-        Assert.NotNull(data);
+        var dataRes = await data.Content.ReadFromJsonAsync<IEnumerable<RDTOCardTrack>>();
+
+        Assert.NotNull(dataRes);
+        Assert.Single(dataRes);
+        Assert.Equal("Track 3", dataRes.First().Name);
+        
+
 
     }
 }

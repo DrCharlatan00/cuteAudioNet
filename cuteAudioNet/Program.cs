@@ -115,7 +115,6 @@ builder.Services.AddTransient<IValidator<DTOArtist>, ValidatorsArtist>();
 
 
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -143,5 +142,7 @@ foreach (var endpoint in app.Services
 #endif
 
 app.MapHealthChecks("/health-project");
+
+
 
 app.Run();
