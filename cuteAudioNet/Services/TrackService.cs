@@ -9,6 +9,7 @@ using cuteAudioNet.Services.Caching;
 using cuteAudioNet.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
