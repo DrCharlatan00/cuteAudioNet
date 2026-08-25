@@ -122,7 +122,7 @@ namespace cuteAudioNet.Services
 
             var version =  await cache.GetVersionAsync(cacheVersion);
 
-            string cacheKey = $"albums:card:v{1}:page{page}:size:{pageSize}";
+            string cacheKey = $"albums:card:v{cacheVersion}:page{page}:size:{pageSize}";
             var cacheData = await cache.GetAsync<IEnumerable<RDTOAlbumCard>>(cacheKey);
 
             if (cacheData is not null) {
@@ -131,8 +131,9 @@ namespace cuteAudioNet.Services
 
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
             if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
+            var result = data.Select(Map).ToList();
             await cache.SetAsync(cacheKey, data, TimeSpan.FromMinutes(2));
-            return data.Select(Map).ToImmutableList();
+            return result;
         }
 
         /// <summary>
