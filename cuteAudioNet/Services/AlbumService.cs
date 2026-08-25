@@ -19,10 +19,7 @@ namespace cuteAudioNet.Services
 #pragma warning disable CS1591 // Отсутствует комментарий XML для открытого видимого типа или члена
     public class AlbumService(
 #pragma warning restore CS1591 // Отсутствует комментарий XML для открытого видимого типа или члена
-        /// TODO : 
-        /// Create Validation Service 
-        /// Create Test Critical code
-        ///
+
 
         IAlbumsRepository repository,
         ILogger<AlbumService> logger,
@@ -52,15 +49,13 @@ namespace cuteAudioNet.Services
         public async Task<IEnumerable<RDTOAlbumCard>> GetAllFromCardAsync()
         {
 
-
             List<RDTOAlbumCard> cards = new();
             
             await foreach ((string AlbumName, string ArtistNickname) data in repository.GetAsyncEnumerebleFromCardDb())
             {
                 cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
             }
-            
-            
+  
             return cards;
         }
 
@@ -125,20 +120,18 @@ namespace cuteAudioNet.Services
 
             const string cacheVersion = "albums:version";
 
-            var version = cache.GetVersionAsync(cacheVersion);
+            var version =  await cache.GetVersionAsync(cacheVersion);
 
             string cacheKey = $"albums:card:v{1}:page{page}:size:{pageSize}";
-            var cacheData = await cache.GetAsync<List<RDTOAlbumCard>>(cacheKey);
+            var cacheData = await cache.GetAsync<IEnumerable<RDTOAlbumCard>>(cacheKey);
 
             if (cacheData is not null) {
-               return cacheData
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToImmutableList();
+                return cacheData;
             }
 
             var data = await repository.GetWhisPaginationAsyncDb(page, pageSize);
             if (data is null) throw new DbGetCollectionIsNull(null, nameof(ModelAlbumDB), nameof(GetByPaginationCard));
+            await cache.SetAsync(cacheKey, data, TimeSpan.FromMinutes(2));
             return data.Select(Map).ToImmutableList();
         }
 
@@ -289,7 +282,7 @@ namespace cuteAudioNet.Services
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex.Message);
+                logger.LogCritical(ex,"redis version not increment");
             }
             await hubContext.Clients.All.SendAsync("NewAlbumCreated", result.ID);
             return (Guid)result.ID;

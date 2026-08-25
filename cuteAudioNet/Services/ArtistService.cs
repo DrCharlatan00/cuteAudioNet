@@ -10,7 +10,6 @@ using cuteAudioNet.Services.Interfaces;
 using cuteAudioNet.SignalRHubs;
 using FluentValidation;
 using Microsoft.AspNetCore.SignalR;
-using StackExchange.Redis;
 using System.Data;
 
 
@@ -77,6 +76,7 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOArtistCard>> GetCardWithPagination(int page, int pageSize, CancellationToken cancellationToken)
         {
+
             const string cacheVerKey = "artist:version";
 
             long version = await cache.GetVersionAsync(cacheVerKey);

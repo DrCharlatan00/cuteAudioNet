@@ -46,9 +46,6 @@ namespace cuteAudioNet.Services
 
         public async Task<IEnumerable<RDTOTrack>> GetAllTrackAsync()
         {
-
-
-        
             List<RDTOTrack> tracks = new();
             await foreach (var item in _tracksRepository.GetAllAsyncEnumerableDb())
             {
@@ -91,22 +88,22 @@ namespace cuteAudioNet.Services
                 if (cacheTracks is not null) return cacheTracks;
             }
             catch (Exception ex) {
-                logger.LogError(ex.Message);
+                logger.LogError(ex,"For func {name} , can't set cache",nameof(GetByPaginationCardAsync));
             }
 
             var data = await _tracksRepository.GetWhisPaginationDb(page,pageSize);
-            if (data is null) {
-                logger.LogInformation("Get null in collection whis pagination method");
+            if (data is null || data.First().Name is null) {
+                logger.LogInformation("Get null in collection {collection} whis pagination method",data?.GetType().FullName );
                 throw new DbGetCollectionIsNull("Collection is null", nameof(ModelTrackDB), nameof(GetByPaginationCardAsync));
             }
 
             try
             {
                 List <RDTOCardTrack> datac = data.Select(Map).ToList();
-                await cache.SetAsync<List<RDTOCardTrack>>(cacheKey, datac, TimeSpan.FromMinutes(2));
+                await cache.SetAsync(cacheKey, datac, TimeSpan.FromMinutes(2));
             }
             catch (Exception ex) {
-                logger.LogError(ex,"redis data not saved");
+                logger.LogError(ex,"redis data not saved in func {func}",nameof(GetByPaginationCardAsync));
             }
             return data.Select(Map).ToImmutableList();
         }
@@ -164,7 +161,7 @@ namespace cuteAudioNet.Services
             }
             catch (Exception ex) {
                 //logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
-                logger.LogCritical("data is redis not removed with create in class {track} \nException {exc}", nameof(TrackService), ex.Message);
+                logger.LogCritical(ex,"data is redis not removed with create in class {track} \nException {exc}", nameof(TrackService), ex.Message);
             }
             await hubContext.Clients.All.SendAsync("NewTrackCreated",result.ID);
             return (Guid)result.ID;
@@ -183,7 +180,7 @@ namespace cuteAudioNet.Services
                 }
                 catch (Exception ex)
                 {
-                    logger.LogCritical($"data is redis not removed in class {nameof(TrackService)} \nException: {ex.Message}");
+                    logger.LogCritical(ex,"data is redis not removed in class {serv)} \nException: message {ex}", nameof(TrackService), ex.Message);
                 }
                 await hubContext.Clients.All.SendAsync("TrackRemoved", id);
                 return true;

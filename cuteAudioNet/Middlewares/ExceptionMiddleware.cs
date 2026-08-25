@@ -32,12 +32,12 @@ namespace cuteAudioNet.Middlewares
                 {
                     DbGetCollectionIsNull => $"Funcion {Function} throw expection broken collection this name or type or name class: {CollectonOrItemName}",
                     DbGetItemIsNull => $"Funcion {Function} throw expection bad item this name or type or name class: {CollectonOrItemName}",
-                    CreateItemBaseFail<object, object> c => $"Create failed: class={ClassType.Name}, item={Item.Name}, msg={c.Message}",
-                    UpdateItemBaseFail<object, object> u => $"Update failed: class={ClassType.Name}, item={Item.Name} msg={u.Message}",
-                    RemoveItemBaseFail<object, object> r => $"Remove failed: class={ClassType.Name}, item={Item.Name}, msg={r.Message}",
+                    CreateItemBaseFail<object, object> c => $"Create failed: class={ClassType.FullName}, item={Item.FullName}, msg={c.Message}",
+                    UpdateItemBaseFail<object, object> u => $"Update failed: class={ClassType.FullName}, item={Item.FullName} msg={u.Message}",
+                    RemoveItemBaseFail<object, object> r => $"Remove failed: class={ClassType.FullName}, item={Item.FullName}, msg={r.Message}",
                     _ => $"Operation failed: {exs.Message}"
                 };
-                logger.LogError(messageToLog);
+                logger.LogError(exs,messageToLog);
 
                 string MessageClient = exs switch
                 {
@@ -62,7 +62,7 @@ namespace cuteAudioNet.Middlewares
                     ArgumentNullException => StatusCodes.Status400BadRequest,
                     ValidationException => StatusCodes.Status400BadRequest,
                     NotImplementedException => StatusCodes.Status501NotImplemented,
-                    NullReferenceException => StatusCodes.Status503ServiceUnavailable,
+                    NullReferenceException => StatusCodes.Status500InternalServerError,
                     _ => StatusCodes.Status500InternalServerError
                 };
                 context.Response.StatusCode = StatusCode;
