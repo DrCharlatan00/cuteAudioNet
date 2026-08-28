@@ -48,7 +48,7 @@ namespace cuteAudioNet.Services
             await foreach (var item in repository.GetWithCardArtistsAsyncEnumertable(cancellationToken))
             {
                 List<RDTOAlbumCard> albumCards = new List<RDTOAlbumCard>();
-                foreach (var album in item.album)
+                foreach (var album in item.Albums)
                 {
                     albumCards.Add(MapAlbumCard(album));
                 }

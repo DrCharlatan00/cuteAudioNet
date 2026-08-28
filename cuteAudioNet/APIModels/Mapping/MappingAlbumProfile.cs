@@ -15,6 +15,14 @@ namespace cuteAudioNet.APIModels.Mapping
                         ArtistName: src.Artist.NickName ?? "N/A"
                         )
                 );
+
+            CreateMap<ModelAlbumCardDb, RDTOAlbumCard>()
+                .ConstructUsing(
+                    src => new RDTOAlbumCard(
+                         Name: src.Name,
+                         ArtistName: src.ArtistName
+                        )
+                );
             CreateMap<ModelAlbumDB, RDTOAlbum>().ConstructUsing(
                     src => new RDTOAlbum(
                             Name: src.AlbumName,

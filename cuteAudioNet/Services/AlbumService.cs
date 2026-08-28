@@ -51,9 +51,9 @@ namespace cuteAudioNet.Services
 
             List<RDTOAlbumCard> cards = new();
             
-            await foreach ((string AlbumName, string ArtistNickname) data in repository.GetAsyncEnumerebleFromCardDb())
+            await foreach (ModelAlbumCardDb data in repository.GetAsyncEnumerebleFromCardDb())
             {
-                cards.Add(new RDTOAlbumCard(data.AlbumName, data.ArtistNickname));
+                cards.Add(new RDTOAlbumCard(data.Name,data.ArtistName));
             }
   
             return cards;
@@ -300,6 +300,8 @@ namespace cuteAudioNet.Services
         private ModelAlbumDB Map(DTOCreateAlbum model) => mapper.Map<ModelAlbumDB>(model);
 
         private RDTOAlbum MapFull(ModelAlbumDB model) => mapper.Map<RDTOAlbum>(model);
+
+        private RDTOAlbumCard Map(ModelAlbumCardDb model) => mapper.Map<RDTOAlbumCard>(model);
 
 
         #endregion

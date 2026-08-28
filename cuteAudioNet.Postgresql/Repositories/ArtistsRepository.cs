@@ -28,11 +28,11 @@ namespace cuteAudioNet.Postgresql.Repositories
             }
         }
 
-        public async IAsyncEnumerable<(string NickName, IEnumerable<ModelAlbumDB> album)> GetWithCardArtistsAsyncEnumertable([EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<ModelArtistCardDb> GetWithCardArtistsAsyncEnumertable([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var item in _context.artists.AsNoTracking().Select(u => new { u.NickName, u.Albums }).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            await foreach (var item in _context.artists.AsNoTracking().Select(u => new ModelArtistCardDb( u.NickName, u.Albums )).AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
-                yield return (item.NickName, item.Albums);
+                yield return item;
             }
         }
 
@@ -45,14 +45,14 @@ namespace cuteAudioNet.Postgresql.Repositories
         {
             return await _context.artists.AsNoTracking().ToListAsync(cancellationToken);
         }
-        public async Task<IEnumerable<ModelArtistDB>> GetWithPaginationAsyncDB(int page, int pageSize, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ModelArtistCardDb>> GetWithPaginationAsyncDB(int page, int pageSize, CancellationToken cancellationToken)
         {
             return await _context.artists
                 .AsNoTracking()
-                .Include(x => x.Albums)
                 .OrderBy(x => x.ID)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .Select(u => new ModelArtistCardDb(u.NickName, u.Albums))
                 .ToListAsync(cancellationToken)
                 ;
         }
@@ -65,10 +65,10 @@ namespace cuteAudioNet.Postgresql.Repositories
             }
         }
 
-        public async IAsyncEnumerable<ModelArtistDB> SearchByNickNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<ModelArtistCardDb> SearchByNickNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-#warning Need Select
-            await foreach (var item in _context.artists.AsNoTracking().Include(x => x.Albums).Where(x => x.NickName == name).Skip((page - 1) * pageSize).Take(pageSize).ToAsyncEnumerable())
+            await foreach (var item in _context.artists.AsNoTracking().Where(x => x.NickName == name).Skip((page - 1) * pageSize).Take(pageSize).Select(u => new ModelArtistCardDb(u.NickName, u.Albums))
+.ToAsyncEnumerable())
             {
                 yield return item;
             }
