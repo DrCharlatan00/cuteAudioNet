@@ -13,7 +13,6 @@ namespace cuteAudioNet.Postgresql.Repositories
     public class TracksRepository(PgContext context) : ITracksRepository
     {
 
-        // !+ Add new method from card aswers
         private readonly PgContext _context = context;
         #region Get
         public async Task<IEnumerable<ModelTrackDB>> GetAllTrackAsyncDb()
@@ -35,24 +34,32 @@ namespace cuteAudioNet.Postgresql.Repositories
 
         }
 
-        public async IAsyncEnumerable<(string Name,MusicGenre Genre, string ArtistNickname)> GetAllTrackCardAsyncEnumerableDb() {
-            await foreach (var item in  _context.tracks.AsNoTracking().Select(u => new
-            {
-                u.Name,
-                u.Genre,
-                u.Album.Artist.NickName
-            }).AsAsyncEnumerable()) {
-                yield return (item.Name,item.Genre,item.NickName);
+        public async IAsyncEnumerable<ModelCardTrackDb> GetAllTrackCardAsyncEnumerableDb() {
+            await foreach (var item in _context.tracks.AsNoTracking().Select(u => new ModelCardTrackDb
+            (
+                name: u.Name,
+                musicGenre: u.Genre,
+                artist: u.SubArtist != null ? u.Album.Artist.NickName + " , " + u.SubArtist : u.Album.Artist.NickName
+            )
+              
+            ).AsAsyncEnumerable()) {
+                yield return item;
             } 
         }
 
 
-        public async Task<IEnumerable<ModelTrackDB>> GetWhisPaginationDb(int page, int pageSize)
+        public async Task<IEnumerable<ModelCardTrackDb>> GetWhisPaginationDb(int page, int pageSize)
         {
             return await _context.tracks
-                .Include(x => x.Album)
-                .Include(x => x.Album.Artist)
+                .AsNoTracking()
                 .OrderBy(x => x.ID)
+                .Select(u => new ModelCardTrackDb
+                    (
+                    name: u.Name,
+                    musicGenre: u.Genre,
+                    artist: u.SubArtist != null ? u.Album.Artist.NickName + " , " + u.SubArtist : u.Album.Artist.NickName
+                    )
+                )
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -70,7 +77,7 @@ namespace cuteAudioNet.Postgresql.Repositories
             }
         }
 
-        public async IAsyncEnumerable<ModelTrackDB> SearchByNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<ModelCardTrackDb> SearchByNameWithPaginationAsyncEnumerable(string name, int page, int pageSize, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (var item in _context.tracks
      .AsNoTracking()
@@ -78,8 +85,13 @@ namespace cuteAudioNet.Postgresql.Repositories
      .OrderBy(x => x.ID)
      .Skip((page - 1) * pageSize)
      .Take(pageSize)
-     .Include(x => x.Album)
-     .ThenInclude(x => x.Artist)
+      .Select(u => new ModelCardTrackDb
+            (
+                name: u.Name,
+                musicGenre: u.Genre,
+                artist: u.SubArtist != null ? u.Album.Artist.NickName + " , " + u.SubArtist : u.Album.Artist.NickName
+            )
+      )
      .AsAsyncEnumerable()
      .WithCancellation(cancellationToken))
             {

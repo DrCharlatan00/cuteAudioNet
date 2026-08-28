@@ -36,9 +36,9 @@ namespace cuteAudioNet.Services
         {
 
             List<RDTOCardTrack> tracks = new();
-            await foreach ((string Name, Postgresql.Models.MusicGenre Genre, string ArtistNickname) item in _tracksRepository.GetAllTrackCardAsyncEnumerableDb())
+            await foreach (ModelCardTrackDb item in _tracksRepository.GetAllTrackCardAsyncEnumerableDb())
             {
-                tracks.Add(new RDTOCardTrack(item.Name,(APIModels.RDTOModel.Tracks.MusicGenre)item.Genre,item.ArtistNickname));
+                tracks.Add(new RDTOCardTrack(item.Name,(APIModels.RDTOModel.Tracks.MusicGenre)item.MusicGenre,item.Artist));
             }
 
             return tracks;
@@ -214,10 +214,11 @@ namespace cuteAudioNet.Services
         }
         #endregion
 
-        #region Map
+        #region Mapping
         private RDTOCardTrack Map(ModelTrackDB model) => _mapper.Map<RDTOCardTrack>(model);
         private RDTOTrack MapToFull(ModelTrackDB model) => _mapper.Map<RDTOTrack>(model);
         private ModelTrackDB Map(DTOTrack track) => _mapper.Map<ModelTrackDB>(track);
+        private RDTOCardTrack Map(ModelCardTrackDb model) => _mapper.Map<RDTOCardTrack>(model);
         #endregion
     }
 }
