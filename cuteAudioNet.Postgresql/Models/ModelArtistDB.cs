@@ -13,7 +13,17 @@ namespace cuteAudioNet.Postgresql.Models
         public DateTime? BornDate { get; set; }
         public string? Pathonymic { get; set; }
         public ICollection<ModelAlbumDB> Albums { get; set; }
+    }
 
+    public class ModelArtistCardDb
+    {
+        public ModelArtistCardDb(string nickName, ICollection<ModelAlbumDB> albums)
+        {
+            NickName = nickName;
+            Albums = albums;
+        }
 
+        public string NickName { get; set; } = "Unknown";
+        public IEnumerable<ModelAlbumDB> Albums { get; set; }
     }
 }

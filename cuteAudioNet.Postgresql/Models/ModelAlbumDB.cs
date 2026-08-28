@@ -15,4 +15,18 @@ namespace cuteAudioNet.Postgresql.Models
 
         public ICollection<ModelTrackDB> Tracks { get; set; }
     }
+
+    public class ModelAlbumCardDb {
+        private string albumName;
+        private string nickName;
+
+        public ModelAlbumCardDb(string albumName, string nickName)
+        {
+            this.albumName = albumName;
+            this.nickName = nickName;
+        }
+
+        public string Name { get; set; } = "Unknown";
+        public string ArtistName { get; set; } = "Unknown"; 
+    }
 }

@@ -11,6 +11,20 @@
         public ModelAlbumDB Album { get; set; }
     }
 
+    public class ModelCardTrackDb
+    {
+        public ModelCardTrackDb(string name, MusicGenre musicGenre, string artist)
+        {
+            Name = name;
+            MusicGenre = musicGenre;
+            Artist = artist;
+        }
+
+        public string Name { get; set; } = "n/a";
+        public MusicGenre MusicGenre { get; set; } = MusicGenre.None;
+        public string Artist { get; set; } = "Unknown";
+    }
+
     public enum MusicGenre {
         None,
         POP,

@@ -28,6 +28,15 @@ namespace cuteAudioNet.APIModels.Mapping
                        TimeRelease: src.TimeRelease.HasValue ? src.TimeRelease.Value.ToString("d") : "Time Release not found",
                        NameAlbum: string.IsNullOrWhiteSpace(src.Album.AlbumName) ? "N/A"  : src.Album.AlbumName
                     ));
+
+            CreateMap<ModelCardTrackDb, RDTOCardTrack>()
+                .ConstructUsing(
+                x => new RDTOCardTrack(
+                    Name: x.Name,
+                    Genre: (RDTOModel.Tracks.MusicGenre)x.MusicGenre,
+                    Artist: x.Artist
+                    )
+                );
             #endregion
 
             CreateMap<DTOTrack, ModelTrackDB>().ConstructUsing(
